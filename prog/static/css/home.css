@@ -1,0 +1,391 @@
+css
+/* ==================================================
+   ABA 1 — HERO: seção principal
+   ================================================== */
+
+.hero {
+    background: linear-gradient(
+        180deg,
+        var(--hero-from) 0%,
+        var(--hero-to) 75%
+    );
+    padding: clamp(2rem, 5vw, 4rem) 0 clamp(2rem, 4vw, 3rem);
+}
+
+.hero__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(1.5rem, 4vw, 4rem);
+    min-height: min(640px, calc(100svh - 150px));
+}
+
+.hero__tag {
+    display: inline-flex;
+    gap: 0.6rem;
+    align-items: center;
+    padding: 0.4rem 0.9rem;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    font: 500 0.88rem ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+}
+
+.hero__tag span {
+    color: var(--accent-ink);
+    font-weight: 700;
+}
+
+.hero__title {
+    font-size: clamp(2.8rem, 6vw, 5rem);
+    margin: 0 0 1.25rem;
+    max-width: 12ch;
+}
+
+.hero__lead {
+    font-size: clamp(1.05rem, 1.5vw, 1.2rem);
+    color: var(--muted);
+    max-width: 46ch;
+    margin-bottom: 2rem;
+}
+
+.hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+}
+
+
+/* ==================================================
+   ABA 2 — CENAS 3D
+   ================================================== */
+
+.scene {
+    position: relative;
+    width: 100%;
+}
+
+.scene canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+}
+
+.scene--hero {
+    aspect-ratio: 1 / 1;
+    max-height: 640px;
+}
+
+.scene--arena {
+    aspect-ratio: 4 / 3;
+    max-width: 600px;
+    justify-self: end;
+}
+
+.scene__fallback {
+    position: absolute;
+    inset: 0;
+    display: none;
+    place-items: center;
+    font: 800 clamp(4rem, 12vw, 8rem) "Syne", sans-serif;
+    color: var(--interact);
+    opacity: 0.5;
+}
+
+.scene.is-fallback .scene__fallback {
+    display: grid;
+}
+
+.scene.is-fallback canvas {
+    display: none;
+}
+
+
+/* ==================================================
+   ABA 3 — DIVISORES E FAIXA ANIMADA
+   ================================================== */
+
+.divider {
+    height: 1px;
+    background: var(--rule);
+    margin: 0 clamp(1rem, 4vw, 3rem);
+}
+
+.strip {
+    background: var(--strip-bg);
+    overflow: hidden;
+    padding: 1.1rem 0;
+    margin-top: 1.25rem;
+    border-block: 1px solid var(--rule);
+}
+
+.strip__track {
+    display: flex;
+    width: max-content;
+    animation: marquee 38s linear infinite;
+}
+
+.strip:hover .strip__track {
+    animation-play-state: paused;
+}
+
+.strip__list {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    flex-shrink: 0;
+}
+
+.strip__list li {
+    padding: 0 2rem;
+    font-weight: 500;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.strip__list li::after {
+    content: "</>";
+    font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+    color: var(--accent-ink);
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+@keyframes marquee {
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+.strip + .divider {
+    margin-top: 0;
+}
+
+
+/* ==================================================
+   ABA 4 — CARDS E ETAPAS
+   ================================================== */
+
+.cards {
+    padding: clamp(3rem, 7vw, 5.5rem) 0;
+}
+
+.cards__grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.card-dca {
+    background: var(--card-bg);
+    color: var(--card-fg);
+    border: 1px solid var(--card-border);
+    border-radius: 18px;
+    box-shadow: var(--card-shadow);
+    padding: clamp(1.5rem, 3vw, 2.4rem);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.card-dca h2 {
+    font-size: clamp(1.4rem, 2.2vw, 1.9rem);
+    margin: 0;
+}
+
+.card-dca p {
+    color: var(--card-muted);
+    margin: 0;
+    max-width: 52ch;
+}
+
+.card-dca--lead {
+    grid-row: 1 / span 2;
+}
+
+.steps {
+    list-style: none;
+    counter-reset: s;
+    padding: 0;
+    margin: 1.25rem 0 0;
+    display: grid;
+    gap: 1.2rem;
+}
+
+.steps li {
+    counter-increment: s;
+    display: grid;
+    grid-template-columns: 2.2rem minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+}
+
+.steps li::before {
+    content: counter(s);
+    font: 700 0.95rem "Syne", sans-serif;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    background: var(--accent);
+    color: #0f172a;
+}
+
+.steps strong {
+    color: var(--card-fg);
+    font-weight: 600;
+}
+
+.steps div {
+    color: var(--card-muted);
+}
+
+.card-dca__link {
+    margin-top: auto;
+    padding-top: 0.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: #7dd3fc;
+    display: inline-flex;
+    gap: 0.4rem;
+    align-items: center;
+}
+
+[data-theme="dark"] .card-dca__link {
+    color: var(--link);
+}
+
+.card-dca__link i {
+    transition: transform 0.2s;
+}
+
+.card-dca__link:hover i {
+    transform: translateX(4px);
+}
+
+
+/* ==================================================
+   ABA 5 — SEÇÃO FINAL E REDES SOCIAIS
+   ================================================== */
+
+.arena {
+    background-color: var(--bg);
+    background-image: radial-gradient(var(--dots) 1.4px, transparent 1.6px);
+    background-size: 22px 22px;
+    border-top: 1px solid var(--rule);
+    padding: clamp(2.5rem, 6vw, 5rem) 0;
+}
+
+.arena__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(1.5rem, 4vw, 3rem);
+}
+
+.arena__name {
+    font: 700 clamp(2.2rem, 4.4vw, 3.6rem)/1.05 "Syne", sans-serif;
+    letter-spacing: -0.035em;
+    margin: 0 0 1rem;
+    overflow-wrap: anywhere;
+}
+
+.arena__lead {
+    color: var(--muted);
+    max-width: 34ch;
+    font-size: 1.1rem;
+    margin-bottom: 1.75rem;
+}
+
+.arena__lead2 {
+    color: var(--muted);
+    max-width: 50ch;
+    font-size: 1.1rem;
+    margin-bottom: 1.75rem;
+}
+
+.social {
+    list-style: none;
+    display: flex;
+    gap: 0.65rem;
+    padding: 0;
+    margin: 0;
+    flex-wrap: wrap;
+}
+
+.social__btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    border: 1.5px solid var(--text);
+    background: transparent;
+    color: var(--text);
+    display: grid;
+    place-items: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.social__btn:hover {
+    transform: translateY(-3px);
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0f172a;
+}
+
+
+/* ==================================================
+   ABA 6 — RESPONSIVIDADE
+   ================================================== */
+
+@media (max-width: 991px) {
+    .hero__grid,
+    .arena__grid {
+        grid-template-columns: 1fr;
+        min-height: 0;
+    }
+
+    .scene--hero {
+        max-height: 440px;
+        order: 2;
+    }
+
+    .scene--arena {
+        justify-self: center;
+    }
+
+    .cards__grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+    }
+
+    .card-dca--lead {
+        grid-row: auto;
+    }
+}
+
+
+/* ==================================================
+   ABA 7 — ACESSIBILIDADE E MOVIMENTO
+   ================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    .strip,
+    .strip__track {
+        animation: none;
+    }
+
+    .strip {
+        overflow-x: auto;
+    }
+}
