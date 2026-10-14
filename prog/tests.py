@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from .models import Challenge, Conversation, Message, Participation, Submission
 from .models_accounts import Profile
+from .forms_platform import ChallengeForm
 
 User = get_user_model()
 
@@ -121,3 +122,82 @@ class RankingTests(PlatformTestCase):
         response = self.client.get(reverse("leaderboard"))
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, "Dev Público")
+
+
+
+class ChallengeManagementTests(PlatformTestCase):
+    def _challenge_payload(self, deadline):
+        return {
+            "title": "Novo desafio integrado",
+            "description": "Construa uma API para um caso real.",
+            "reward": "150.00",
+            "start_at": "",
+            "deadline": timezone.localtime(deadline).strftime("%Y-%m-%dT%H:%M"),
+            "period": Challenge.PERIOD_MONTHLY,
+            "difficulty": Challenge.DIFFICULTY_BEGINNER,
+            "languages": "Python",
+            "technologies": "Django",
+            "requirements": "Entregar endpoints REST.",
+            "evaluation_criteria": "Clareza, testes e documentação.",
+        }
+
+    def test_company_can_publish_challenge(self):
+        self.login_as(self.company_user)
+        payload = self._challenge_payload(timezone.now() + timedelta(days=5))
+        payload["action"] = "publish"
+        response = self.client.post(reverse("company_challenge_create"), payload)
+        self.assertRedirects(response, reverse("company_challenge_management"))
+        challenge = Challenge.objects.get(title="Novo desafio integrado")
+        self.assertEqual(challenge.company, self.company)
+        self.assertEqual(challenge.status, Challenge.STATUS_PUBLISHED)
+        self.assertTrue(challenge.is_active)
+        self.assertEqual(challenge.period, Challenge.PERIOD_MONTHLY)
+
+    def test_company_cannot_publish_challenge_with_past_deadline(self):
+        self.login_as(self.company_user)
+        payload = self._challenge_payload(timezone.now() - timedelta(days=1))
+        payload["action"] = "publish"
+        response = self.client.post(reverse("company_challenge_create"), payload)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "data futura de encerramento")
+        self.assertFalse(Challenge.objects.filter(title="Novo desafio integrado").exists())
+
+    def test_language_filter_uses_get_parameters(self):
+        self.challenge.languages = "Python"
+        self.challenge.save()
+        Challenge.objects.create(
+            company=self.company,
+            title="Desafio de JavaScript",
+            description="Crie uma interface.",
+            deadline=timezone.now() + timedelta(days=4),
+            start_at=timezone.now() - timedelta(hours=1),
+            languages="JavaScript",
+            status=Challenge.STATUS_PUBLISHED,
+            is_active=True,
+        )
+        response = self.client.get(reverse("challenge_list"), {"language": "Python"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "API Challenge")
+        self.assertNotContains(response, "Desafio de JavaScript")
+
+
+class ChallengeFormValidationTests(TestCase):
+    def test_deadline_must_be_after_start(self):
+        now = timezone.localtime(timezone.now())
+        start_at = now + timedelta(days=3)
+        deadline = now + timedelta(days=2)
+        form = ChallengeForm(data={
+            "title": "Datas inválidas",
+            "description": "Teste de validação de datas.",
+            "reward": "0.00",
+            "start_at": start_at.strftime("%Y-%m-%dT%H:%M"),
+            "deadline": deadline.strftime("%Y-%m-%dT%H:%M"),
+            "period": Challenge.PERIOD_WEEKLY,
+            "difficulty": Challenge.DIFFICULTY_BEGINNER,
+            "languages": "Python",
+            "technologies": "Django",
+            "requirements": "",
+            "evaluation_criteria": "",
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn("deadline", form.errors)
