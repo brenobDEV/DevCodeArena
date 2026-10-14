@@ -5,7 +5,7 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
 const $ = (s) => document.querySelector(s);
 const stageEl = $("#demo-scene"), canvas = stageEl.querySelector("canvas"), status = $("#demo-status");
-const state = { rx: 0, ry: -140, rz: 0, scale: 1.1, hx: 0, hy: 0, hz: 0, sx: 0, sy: 1.6, sz: 0, ss: 0.62, wire: false, tech: true, animate: true };
+const state = { rx: 0, ry: 180, rz: 0, scale: 1.4, hx: 0, hy: 0, hz: 0, sx: 0, sy: 1.85, sz: 0, ss: 0.7, wire: false, tech: true, animate: true };
 
 let renderer;
 try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true }); }
@@ -18,9 +18,9 @@ const scene = new THREE.Scene();
 const pm = new THREE.PMREMGenerator(renderer);
 scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
 scene.environmentIntensity = 0.55;
-const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100);
-camera.position.set(4.4, 5.0, 8.8);                      // três quartos: palma, dedos, polegar e volume
-const LOOK = new THREE.Vector3(0.3, 0.75, 0.9);
+const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+camera.position.set(0.6, 4.6, 9.2);                      // três quartos: palma, dedos, polegar e volume
+const LOOK = new THREE.Vector3(0, 0.65, 0.7);
 
 const key = new THREE.DirectionalLight(0xe0ecff, 2.4); key.position.set(4, 7, 6); key.castShadow = true; scene.add(key);
 const rim = new THREE.DirectionalLight(0x00e5ff, 2.4); rim.position.set(-6, 3, -4); scene.add(rim);
@@ -161,10 +161,11 @@ renderer.setAnimationLoop(() => {
   const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
   handUniforms.uTime.value = t;
   const lift = state.animate ? Math.sin(t * 0.9) * 0.5 + 0.5 : 0;
+  const lift2 = state.animate ? Math.sin(t * 0.9 - 0.6) * 0.5 + 0.5 : 0;
   const ramp = state.animate ? Math.min(t / 3, 1) : 0;
   angle += dt * 0.42 * ramp * ramp * (3 - 2 * ramp);
-  wrist.position.y = lift * 0.12; wrist.rotation.x = lift * 0.05;              // impulso do pulso
-  symbol.position.set(state.sx, state.sy + lift * 0.15 + Math.sin(t * 0.8) * 0.03 * ramp, state.sz);
+  wrist.position.y = lift * 0.35; wrist.rotation.x = lift * 0.04;              // impulso do pulso
+  symbol.position.set(state.sx, state.sy + lift2 * 0.45 + Math.sin(t * 0.8) * 0.03 * ramp, state.sz);
   symbol.rotation.set(0.16 + Math.sin(t * 0.5) * 0.05 * ramp, angle, -0.05);   // gira sobre o próprio eixo
   camera.lookAt(LOOK); renderer.render(scene, camera);
 });

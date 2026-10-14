@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Teste da mão 3D — DevCodeArena</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/hand_demo.css' %}?v=5">
+  <link rel="stylesheet" href="{% static 'css/hand_demo.css' %}?v=8">
   <script type="importmap">
   { "imports": {
     "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
@@ -25,20 +25,20 @@
       <label class="demo__file">Testar outro GLB <input type="file" id="demo-file" accept=".glb,model/gltf-binary"></label>
       <fieldset><legend>Orientação do modelo (graus)</legend>
       <label class="demo__row"><span>Eixo X</span><input type="range" data-key="rx" min="-180" max="180" step="1" value="0"><output>0</output></label>
-      <label class="demo__row"><span>Eixo Y</span><input type="range" data-key="ry" min="-180" max="180" step="1" value="-140"><output>-140</output></label>
+      <label class="demo__row"><span>Eixo Y</span><input type="range" data-key="ry" min="-180" max="180" step="1" value="180"><output>180</output></label>
       <label class="demo__row"><span>Eixo Z</span><input type="range" data-key="rz" min="-180" max="180" step="1" value="0"><output>0</output></label>
       </fieldset>
       <fieldset><legend>Tamanho e posição da mão</legend>
-      <label class="demo__row"><span>Escala</span><input type="range" data-key="scale" min="0.3" max="2" step="0.01" value="1.1"><output>1.1</output></label>
+      <label class="demo__row"><span>Escala</span><input type="range" data-key="scale" min="0.3" max="2" step="0.01" value="1.4"><output>1.4</output></label>
       <label class="demo__row"><span>X</span><input type="range" data-key="hx" min="-3" max="3" step="0.05" value="0"><output>0</output></label>
       <label class="demo__row"><span>Y</span><input type="range" data-key="hy" min="-2" max="2" step="0.05" value="0"><output>0</output></label>
       <label class="demo__row"><span>Z</span><input type="range" data-key="hz" min="-3" max="3" step="0.05" value="0"><output>0</output></label>
       </fieldset>
       <fieldset><legend>Símbolo &lt;/&gt;</legend>
       <label class="demo__row"><span>X</span><input type="range" data-key="sx" min="-3" max="3" step="0.05" value="0"><output>0</output></label>
-      <label class="demo__row"><span>Altura</span><input type="range" data-key="sy" min="0" max="5" step="0.05" value="1.6"><output>1.6</output></label>
+      <label class="demo__row"><span>Altura</span><input type="range" data-key="sy" min="0" max="5" step="0.05" value="1.85"><output>1.85</output></label>
       <label class="demo__row"><span>Z</span><input type="range" data-key="sz" min="-3" max="3" step="0.05" value="0"><output>0</output></label>
-      <label class="demo__row"><span>Escala</span><input type="range" data-key="ss" min="0.3" max="1.5" step="0.01" value="0.62"><output>0.62</output></label>
+      <label class="demo__row"><span>Escala</span><input type="range" data-key="ss" min="0.3" max="1.5" step="0.01" value="0.7"><output>0.7</output></label>
       </fieldset>
       <fieldset><legend>Exibição</legend>
       <label class="demo__check"><input type="checkbox" data-key="tech" checked> Material técnico (escuro)</label>
@@ -49,6 +49,6 @@
       <pre id="demo-out" aria-label="Valores para o hero"></pre>
     </aside>
   </main>
-  <script type="module" src="{% static 'js/hand_demo.js' %}?v=5"></script>
+  <script type="module" src="{% static 'js/hand_demo.js' %}?v=8"></script>
 </body>
 </html>

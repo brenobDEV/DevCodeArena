@@ -3,7 +3,7 @@
 {% block title %}DevCodeArena — Seu código fala por você{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/home.css' %}?v=5">
+<link rel="stylesheet" href="{% static 'css/home.css' %}?v=11">
 <script type="importmap">
 { "imports": {
   "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
@@ -17,7 +17,7 @@
   <div class="container hero__grid">
     <div class="hero__copy">
       <p class="hero__tag"><span aria-hidden="true">{}</span> Recrutamento às cegas, guiado pelo seu código.</p>
-      <h1 class="hero__title">Seu código fala por você.</h1>
+      <h1 class="hero__title">Seu código fala mais que seu portifólio.</h1>
       <p class="hero__lead">Encare desafios inspirados em problemas reais, demonstre suas habilidades e conquiste novas oportunidades no mercado de tecnologia.</p>
       {% if not account_type %}
       <div class="hero__actions">
@@ -29,8 +29,8 @@
 
     <div class="scene scene--hero" id="hero-scene"
          role="img" aria-label="Uma mão sustenta o símbolo de programação em rotação lenta"
-         data-hand-src="{% static 'models/hand.glb' %}" data-hand-rotation="0,-140,0" data-hand-scale="1.1"
-         data-hand-offset="0,0,0" data-symbol-pos="0,1.6,0" data-symbol-scale="0.62">
+         data-hand-src="{% static 'models/hand.glb' %}" data-hand-rotation="0,180,0" data-hand-scale="1.4"
+         data-hand-offset="0,0,0" data-symbol-pos="0,1.85,0" data-symbol-scale="0.7">
       <canvas></canvas>
       <div class="scene__fallback" aria-hidden="true">&lt;/&gt;</div>
     </div>
@@ -64,7 +64,7 @@
       <h2>Como a plataforma funciona</h2>
       <p>Seu currículo fica em segundo plano. Quem avalia vê a solução, não o nome.</p>
       <ol class="steps">
-        <li><div><strong>A Nossa empresa publica um desafios semanais ou mensais</strong> baseado em problemas reais do seu dia a dia.</div></li>
+        <li><div><strong>Nossa empresa publica um desafios semanais ou mensais</strong> baseado em problemas reais do seu dia a dia.</div></li>
         <li><div><strong>Você resolve</strong> dentro do prazo, semanal ou mensal.</div></li>
         <li><div><strong>As soluções são avaliadas às cegas</strong>, com foco nas habilidades demonstradas.</div></li>
         <li><div><strong>Empresa e talento se aproximam</strong>, com contratação e pagamento intermediados com segurança.</div></li>
@@ -110,5 +110,5 @@
 
 {% block extra_js %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script type="module" src="{% static 'js/home.js' %}?v=5"></script>
+<script type="module" src="{% static 'js/home.js' %}?v=12"></script>
 {% endblock %}

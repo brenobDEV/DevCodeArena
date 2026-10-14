@@ -1,7 +1,11 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Criar conta — DevCodeArena{% endblock %}
-{% block extra_head %}<link rel="stylesheet" href="{% static 'css/accounts.css' %}?v=5">{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/accounts.css' %}?v=8">{% endblock %}
+
+{# Sem menu de configurações e sem rodapé: nada que tire o usuário do fluxo de acesso #}
+{% block settings_menu %}{% endblock %}
+{% block site_footer %}{% endblock %}
 
 {% block content %}
 {% if not kind %}
@@ -67,4 +71,4 @@
 {% endif %}
 {% endblock %}
 
-{% block extra_js %}<script src="{% static 'js/accounts.js' %}?v=5" defer></script>{% endblock %}
+{% block extra_js %}<script src="{% static 'js/accounts.js' %}?v=8" defer></script>{% endblock %}

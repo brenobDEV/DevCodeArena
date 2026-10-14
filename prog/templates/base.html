@@ -9,10 +9,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/base.css' %}?v=5">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}?v=8">
   {% block extra_head %}{% endblock %}
   {# Sem defer: aplica o tema antes da primeira pintura, evitando flash. #}
-  <script src="{% static 'js/base.js' %}?v=5"></script>
+  <script src="{% static 'js/base.js' %}?v=8"></script>
 </head>
 <body>
 <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -28,6 +28,7 @@
         <i class="bi bi-sun-fill icon-sun" aria-hidden="true"></i>
         <i class="bi bi-moon-stars-fill icon-moon" aria-hidden="true"></i>
       </button>
+      {% block settings_menu %}
       <div class="dropdown">
       <button type="button" class="icon-btn icon-btn--gear" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Abrir menu de configurações">
         <i class="bi bi-gear" aria-hidden="true"></i>
@@ -66,12 +67,14 @@
         </ul>
       </div>
       </div>
+      {% endblock %}
     </div>
   </div>
 </header>
 
 <main id="conteudo">{% block content %}{% endblock %}</main>
 
+{% block site_footer %}
 <footer class="site-footer">
   {% if not account_type %}
   <div class="container">
@@ -135,6 +138,7 @@
   </div>
   <div class="site-footer__mark" aria-hidden="true">DevCodeArena</div>
 </footer>
+{% endblock %}
 
 <div class="modal fade channel-modal" id="channel-modal" tabindex="-1" aria-labelledby="channel-modal-title" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
