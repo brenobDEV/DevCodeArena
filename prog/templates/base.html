@@ -16,8 +16,8 @@
 </head>
 <body>
 <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
-<header class="site-header{% if account_type %} site-header--authenticated{% endif %}">
-  <div class="site-header__inner{% if account_type %} site-header__inner--authenticated{% endif %}">
+<header class="site-header{% if user.is_authenticated %} site-header--authenticated{% endif %}">
+  <div class="site-header__inner{% if user.is_authenticated %} site-header__inner--authenticated{% endif %}">
     <span class="site-header__side" aria-hidden="true"></span>
     <a class="brand" href="{{ nav.home }}" aria-label="Prog., página inicial"><span class="brand__word" aria-hidden="true"><span>P</span><span>r</span><span>o</span><span>g</span><span class="brand__dot">.</span></span></a>
     {% if user.is_authenticated %}
