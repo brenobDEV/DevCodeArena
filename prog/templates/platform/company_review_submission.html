@@ -1,0 +1,7 @@
+{% extends "base_authenticated.html" %}
+{% block title %}Avaliar submissão — DevCodeArena{% endblock %}
+{% block content %}
+<section class="platform-page"><div class="container form-page"><a class="back-link" href="{% url 'company_challenge_manage' submission.participation.challenge.pk %}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Voltar aos participantes</a><header class="platform-hero platform-hero--compact"><div><p class="eyebrow">AVALIAÇÃO MANUAL</p><h1>Avalie a solução.</h1><p>{{ submission.participation.challenge.title }} · {{ submission.participation.developer.public_name }}</p></div></header>
+<div class="content-panel"><p><strong>Repositório:</strong> <a href="{{ submission.repository_url }}" target="_blank" rel="noopener noreferrer">{{ submission.repository_url }}</a></p>{% if submission.demo_url %}<p><strong>Demonstração:</strong> <a href="{{ submission.demo_url }}" target="_blank" rel="noopener noreferrer">{{ submission.demo_url }}</a></p>{% endif %}{% if submission.notes %}<h3>Notas do desenvolvedor</h3><div class="prose">{{ submission.notes|linebreaks }}</div>{% endif %}
+<form method="post" class="platform-form platform-form--single">{% csrf_token %}{% for field in form %}<div class="form-field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>{% endfor %}<button class="btn-dca btn-dca--primary" type="submit">Salvar avaliação</button></form></div></div></section>
+{% endblock %}

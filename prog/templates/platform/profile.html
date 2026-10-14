@@ -1,0 +1,7 @@
+{% extends "base_authenticated.html" %}
+{% block title %}Meu perfil — DevCodeArena{% endblock %}
+{% block content %}
+<section class="platform-page"><div class="container profile-layout"><header class="platform-hero platform-hero--compact"><div><p class="eyebrow">SUA CONTA</p><h1>Seu perfil na arena.</h1><p>Dados públicos limitados ao necessário para sua participação e avaliação.</p></div></header>
+<div class="content-panel profile-card"><div class="profile-avatar"><i class="bi {% if profile.tipo == 'company' %}bi-building{% else %}bi-person{% endif %}" aria-hidden="true"></i></div><div><span class="pill">{{ profile.get_tipo_display }}</span><h2>{{ profile.public_name }}</h2><p class="muted">Membro desde {{ profile.created_at|date:"d/m/Y" }}</p><p>O CPF e outras informações sensíveis não são exibidos no perfil público.</p></div>{% if profile.tipo == "developer" %}<a class="btn-dca btn-dca--primary" href="{% url 'my_submissions' %}">Ver minhas soluções</a>{% else %}<a class="btn-dca btn-dca--primary" href="{% url 'company_dashboard' %}">Abrir painel</a>{% endif %}</div>
+</div></section>
+{% endblock %}

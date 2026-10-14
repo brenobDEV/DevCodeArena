@@ -1,0 +1,16 @@
+{% extends "base_authenticated.html" %}
+{% block title %}Ciclos de desafios — DevCodeArena{% endblock %}
+{% block content %}
+<section class="platform-page">
+  <div class="container">
+    <header class="platform-hero"><div><p class="eyebrow">&lt;/&gt; sua próxima conquista começa aqui</p><h1>Escolha sua arena.</h1><p>Desafios de programação para demonstrar habilidades com problemas de verdade.</p></div><a class="btn-dca btn-dca--primary" href="{% url 'challenge_list' %}"><i class="bi bi-search" aria-hidden="true"></i> Explorar desafios</a></header>
+    <div class="period-grid">
+      <article class="period-card period-card--weekly"><div class="period-card__icon"><i class="bi bi-calendar-week" aria-hidden="true"></i></div><p class="eyebrow">Ciclo rápido</p><h2>Desafios semanais</h2><p>Resolva problemas focados, pratique e crie consistência.</p><div class="period-card__meta"><strong>{{ weekly_count }}</strong><span>{% if weekly_count == 1 %}desafio disponível{% else %}desafios disponíveis{% endif %}</span></div><a class="btn-dca btn-dca--outline" href="{% url 'challenge_list' %}?period=weekly">Ver desafios semanais <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a></article>
+      <article class="period-card period-card--monthly"><div class="period-card__icon"><i class="bi bi-calendar-month" aria-hidden="true"></i></div><p class="eyebrow">Construção aprofundada</p><h2>Desafios mensais</h2><p>Explore requisitos maiores e desenvolva soluções completas.</p><div class="period-card__meta"><strong>{{ monthly_count }}</strong><span>{% if monthly_count == 1 %}desafio disponível{% else %}desafios disponíveis{% endif %}</span></div><a class="btn-dca btn-dca--outline" href="{% url 'challenge_list' %}?period=monthly">Ver desafios mensais <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a></article>
+    </div>
+    <div class="section-heading"><div><p class="eyebrow">Não deixe para depois</p><h2>Encerramento mais próximo</h2></div><a class="text-link" href="{% url 'challenge_list' %}?state=ending">Ver todos <i class="bi bi-arrow-right" aria-hidden="true"></i></a></div>
+    <div class="challenge-grid">{% for challenge in weekly_challenges %}{% include "platform/_challenge_card.html" with challenge=challenge %}{% endfor %}{% for challenge in monthly_challenges %}{% include "platform/_challenge_card.html" with challenge=challenge %}{% endfor %}</div>
+    {% if not weekly_challenges and not monthly_challenges %}<div class="empty-state"><span class="empty-state__icon"><i class="bi bi-trophy" aria-hidden="true"></i></span><h3>A arena está se preparando</h3><p>Ainda não há desafios publicados. Volte em breve para conferir novas oportunidades.</p><a class="btn-dca btn-dca--outline" href="{% url 'challenge_list' %}">Explorar catálogo</a></div>{% endif %}
+  </div>
+</section>
+{% endblock %}
