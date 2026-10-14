@@ -112,11 +112,12 @@ class RankingTests(PlatformTestCase):
         response = self.client.get(reverse("leaderboard"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Dev Público")
-        self.assertContains(response, "87.50")
+        self.assertContains(response, "87,50")
 
     def test_unreviewed_submissions_do_not_appear_in_ranking(self):
         participation = Participation.objects.create(challenge=self.challenge, developer=self.developer)
         Submission.objects.create(participation=participation, repository_url="https://github.com/example/solution")
+        self.login_as(self.dev_user)
         response = self.client.get(reverse("leaderboard"))
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, "Dev Público")
