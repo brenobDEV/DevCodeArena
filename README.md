@@ -42,7 +42,7 @@ Abra http://127.0.0.1:8000/ no navegador. Acesse o Django Admin em /admin/ depoi
 - Profile.cpf continua privado e não é exibido nas páginas públicas nem na listagem padrão do admin.
 - A avaliação é manual. Esta versão não executa código enviado por usuários, não fornece isolamento de execução, não possui WebSockets nem integração externa de recrutamento.
 - A classificação atual é uma soma simples e global das notas avaliadas. Não há histórico por período nem detecção de fraude.
-- Antes de produção: configurar segredo por variável de ambiente, DEBUG=False, ALLOWED_HOSTS, HTTPS, backups, política de retenção de dados pessoais e revisão de segurança. Não apague db.sqlite3 para aplicar migrations.
+- Antes de produção: defina `DJANGO_SECRET_KEY` com uma chave nova e privada, `DJANGO_DEBUG=False` e `DJANGO_ALLOWED_HOSTS=seu-dominio.com` no ambiente de execução. A aplicação recusa iniciar em modo de produção sem chave e hosts configurados. A chave que já esteve versionada deve ser considerada comprometida e rotacionada; não a reutilize. Configure HTTPS, backups, política de retenção de dados pessoais e revise a segurança. Não apague db.sqlite3 para aplicar migrations.
 
 ## Testes
 
