@@ -1,8 +1,27 @@
 /* DevCodeArena — home.js: cena da mão + </> e Coliseu 3D (Three.js + GSAP) */
-import * as THREE from "three";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
-import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+/* Os módulos 3D são baixados sob demanda para não bloquear a primeira renderização. */
+let THREE;
+let GLTFLoader;
+let RoomEnvironment;
+let mergeGeometries;
+let threeModulesPromise;
+
+function loadThreeModules() {
+  if (!threeModulesPromise) {
+    threeModulesPromise = Promise.all([
+      import("three"),
+      import("three/addons/loaders/GLTFLoader.js"),
+      import("three/addons/environments/RoomEnvironment.js"),
+      import("three/addons/utils/BufferGeometryUtils.js"),
+    ]).then(([three, gltf, environment, geometryUtils]) => {
+      THREE = three;
+      GLTFLoader = gltf.GLTFLoader;
+      RoomEnvironment = environment.RoomEnvironment;
+      mergeGeometries = geometryUtils.mergeGeometries;
+    });
+  }
+  return threeModulesPromise;
+}
 
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
@@ -12,46 +31,63 @@ addEventListener("pointermove", (e) => {
 }, { passive: true });
 
 /* ---------- Palco genérico: renderer, câmera, resize, pausa fora da tela ---------- */
-function createStage(el, { fov, pos, look, exposure = 1.05 }) {
+function createStage(el, { fov, pos, look, exposure = 1.05, environment = true }) {
   const canvas = el.querySelector("canvas");
   let renderer;
   try {
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true, powerPreference: "high-performance" });
   } catch (err) { el.classList.add("is-fallback"); return null; }
 
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = exposure;
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  // Sombras dinâmicas são caras para uma landing page e não são essenciais aqui.
+  renderer.shadowMap.enabled = false;
 
   const scene = new THREE.Scene();
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  const envRT = pmrem.fromScene(new RoomEnvironment(), 0.04);
-  scene.environment = envRT.texture;
-  scene.environmentIntensity = 0.55;
+  let pmrem = null;
+  let envRT = null;
+  if (environment) {
+    pmrem = new THREE.PMREMGenerator(renderer);
+    envRT = pmrem.fromScene(new RoomEnvironment(), 0.04);
+    scene.environment = envRT.texture;
+    scene.environmentIntensity = 0.55;
+  } else {
+    scene.add(new THREE.HemisphereLight(0xbfdcff, 0x0b1426, 2.0));
+  }
 
   const camera = new THREE.PerspectiveCamera(fov, 1, 0.1, 100);
   camera.position.copy(pos);
   const clock = new THREE.Clock();
   const stage = { scene, camera, renderer, onFrame: () => {}, look: look.clone() };
-  let raf = 0, visible = false;
+  let raf = 0, visible = false, lastFrame = 0;
 
   const draw = () => {
     stage.onFrame(clock.getElapsedTime(), Math.min(clock.getDelta(), 0.05));
     camera.lookAt(stage.look);
     renderer.render(scene, camera);
   };
-  const loop = () => { draw(); raf = requestAnimationFrame(loop); };
+  // Limita a 30 FPS: reduz consumo de CPU/GPU mantendo as animações fluidas.
+  const loop = (now) => {
+    if (now - lastFrame >= 1000 / 30) {
+      lastFrame = now;
+      draw();
+    }
+    raf = requestAnimationFrame(loop);
+  };
   const sync = () => {
     cancelAnimationFrame(raf);
     if (reduceMotion) { draw(); return; }
-    if (visible && !document.hidden) { clock.getDelta(); loop(); }
+    if (visible && !document.hidden) {
+      clock.getDelta();
+      lastFrame = 0;
+      raf = requestAnimationFrame(loop);
+    }
   };
   const resize = () => {
     const w = el.clientWidth, h = el.clientHeight;
     if (!w || !h) return;
-    renderer.setPixelRatio(Math.min(devicePixelRatio, w < 520 ? 1.5 : 2));
+    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, w < 520 ? 1 : 1.35));
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.fov = fov * (camera.aspect < 0.9 ? 1.25 : 1);
@@ -65,7 +101,9 @@ function createStage(el, { fov, pos, look, exposure = 1.05 }) {
   addEventListener("pagehide", () => {
     cancelAnimationFrame(raf);
     scene.traverse((o) => { o.geometry?.dispose(); [].concat(o.material || []).forEach((m) => m.dispose()); });
-    envRT.dispose(); pmrem.dispose(); renderer.dispose();
+    if (envRT) envRT.dispose();
+    if (pmrem) pmrem.dispose();
+    renderer.dispose();
   });
   resize();
   return stage;
@@ -263,10 +301,16 @@ function initHeroScene() {
         scanRing.visible = false; o.add(scanRing);
       } });
       lastCut = NaN; applyTheme();
+      el.classList.remove("is-loading");
       intro();
     },
     undefined,
-    (err) => { console.warn("[DevCodeArena] static/models/hand.glb ausente ou inválido. Nenhuma mão será exibida.", err); intro(); }
+    (err) => {
+      console.warn("[DevCodeArena] static/models/hand.glb ausente ou inválido. Nenhuma mão será exibida.", err);
+      el.classList.remove("is-loading");
+      el.classList.add("is-fallback");
+      intro();
+    }
   );
 
   /* efeitos de materialização: ondas de pulso e partículas saindo da palma */
@@ -416,13 +460,12 @@ function buildColosseum() {
 function initArenaScene() {
   const el = document.getElementById("arena-scene");
   if (!el) return;
-  const stage = createStage(el, { fov: 30, pos: new THREE.Vector3(0, 10.5, 26), look: new THREE.Vector3(0, 2.4, 0), exposure: 1.0 });
+  const stage = createStage(el, { fov: 30, pos: new THREE.Vector3(0, 10.5, 26), look: new THREE.Vector3(0, 2.4, 0), exposure: 1.0, environment: false });
   if (!stage) return;
   const { scene } = stage;
 
   const key = new THREE.DirectionalLight(0xbfdcff, 1.8);
-  key.position.set(8, 14, 9); key.castShadow = true; key.shadow.mapSize.set(1024, 1024);
-  Object.assign(key.shadow.camera, { left: -12, right: 12, top: 12, bottom: -12, near: 1, far: 40 }); key.shadow.bias = -0.0005;
+  key.position.set(8, 14, 9);
   scene.add(key);
   const rim = new THREE.DirectionalLight(0x00e5ff, 2.4); rim.position.set(-9, 5, -8); scene.add(rim);
 
@@ -430,6 +473,7 @@ function initArenaScene() {
   scene.add(colosseum);
   const { scan, scanMat, TOP } = colosseum.userData;
   colosseum.rotation.y = -0.5;
+  el.classList.remove("is-loading");
 
   stage.onFrame = (t) => {
     pointer.x += (pointer.tx - pointer.x) * 0.04; pointer.y += (pointer.ty - pointer.y) * 0.04;
@@ -440,5 +484,42 @@ function initArenaScene() {
   };
 }
 
-initHeroScene();
-initArenaScene();
+/* Mantém o símbolo de fallback visível enquanto cada cena ainda está carregando.
+   A arena inferior só é construída quando o usuário se aproxima dela. */
+function bootSceneWhenVisible(id, init, rootMargin) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  if (reduceMotion) {
+    el.classList.remove("is-loading");
+    el.classList.add("is-fallback");
+    return;
+  }
+
+  let started = false;
+  let observer;
+  const start = () => {
+    if (started) return;
+    started = true;
+    if (observer) observer.disconnect();
+    loadThreeModules()
+      .then(init)
+      .catch((error) => {
+        console.warn("[DevCodeArena] A cena 3D não pôde ser iniciada.", error);
+        el.classList.remove("is-loading");
+        el.classList.add("is-fallback");
+      });
+  };
+
+  if ("IntersectionObserver" in window) {
+    observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) start();
+    }, { rootMargin, threshold: 0.01 });
+    observer.observe(el);
+  } else {
+    start();
+  }
+}
+
+bootSceneWhenVisible("hero-scene", initHeroScene, "80px 0px");
+bootSceneWhenVisible("arena-scene", initArenaScene, "320px 0px");
