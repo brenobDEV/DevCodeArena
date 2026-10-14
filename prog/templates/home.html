@@ -3,7 +3,7 @@
 {% block title %}DevCodeArena — Seu código fala por você{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/home.css' %}?v=12">
+<link rel="stylesheet" href="{% static 'css/home.css' %}?v=13">
 <script type="importmap">
 { "imports": {
   "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
@@ -27,7 +27,7 @@
       {% endif %}
     </div>
 
-    <div class="scene scene--hero is-loading" id="hero-scene"
+    <div class="scene scene--hero" id="hero-scene"
          role="img" aria-label="Uma mão sustenta o símbolo de programação em rotação lenta"
          data-hand-src="{% static 'models/hand.glb' %}" data-hand-rotation="0,180,0" data-hand-scale="1.4"
          data-hand-offset="0,0,0" data-symbol-pos="0,1.85,0" data-symbol-scale="0.7">
@@ -100,7 +100,7 @@
         {% endfor %}
       </ul>
     </div>
-    <div class="scene scene--arena is-loading" id="arena-scene" role="img" aria-label="Coliseu tridimensional reinterpretado como arena de desenvolvimento">
+    <div class="scene scene--arena" id="arena-scene" role="img" aria-label="Coliseu tridimensional reinterpretado como arena de desenvolvimento">
       <canvas></canvas>
       <div class="scene__fallback" aria-hidden="true"><i class="bi bi-bank2"></i></div>
     </div>
@@ -109,6 +109,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script type="module" src="{% static 'js/home.js' %}?v=13"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script type="module" src="{% static 'js/home.js' %}?v=12"></script>
 {% endblock %}
