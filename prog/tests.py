@@ -201,3 +201,25 @@ class ChallengeFormValidationTests(TestCase):
         })
         self.assertFalse(form.is_valid())
         self.assertIn("deadline", form.errors)
+
+class NavigationTests(PlatformTestCase):
+    def test_authenticated_developer_sees_header_navigation(self):
+        self.login_as(self.dev_user)
+        response = self.client.get(reverse("home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'aria-label="Navegação principal"')
+        self.assertContains(response, reverse("challenge_periods"))
+        self.assertContains(response, reverse("conversation_list"))
+        self.assertContains(response, reverse("leaderboard"))
+
+    def test_authenticated_user_without_profile_still_sees_general_navigation(self):
+        legacy_user = User.objects.create_user(
+            username="legacy@example.test", email="legacy@example.test", password="Teste-Seguro-123!"
+        )
+        self.login_as(legacy_user)
+        response = self.client.get(reverse("home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'aria-label="Navegação principal"')
+        self.assertContains(response, reverse("challenge_periods"))
+        self.assertContains(response, reverse("logout"))
+        self.assertNotContains(response, reverse("conversation_list"))
