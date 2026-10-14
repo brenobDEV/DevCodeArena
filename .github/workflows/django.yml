@@ -19,7 +19,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Validate homepage JavaScript syntax
-        run: node --check prog/static/js/home.js
+        run: node --input-type=module --check < prog/static/js/home.js
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
