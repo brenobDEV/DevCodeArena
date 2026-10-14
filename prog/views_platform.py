@@ -345,9 +345,7 @@ def conversation_list(request):
             distinct=True,
         ),
     ).order_by("-updated_at")
-    return render(request, "platform/conversation_list.html", {
-        "conversations": conversations,
-    })
+    return render(request, "platform/conversation_list.html", {"conversations": conversations})
 
 
 @login_required
@@ -382,9 +380,7 @@ def leaderboard(request):
     reviewed = Q(participations__submission__score__isnull=False) & Q(
         participations__submission__reviewed_at__isnull=False
     )
-    profiles = Profile.objects.filter(
-        tipo=Profile.DEVELOPER, reviewed
-    ).select_related("user").annotate(
+    profiles = Profile.objects.filter(Q(tipo=Profile.DEVELOPER) & reviewed).select_related("user").annotate(
         total_score=Sum("participations__submission__score", filter=reviewed),
         reviewed_count=Count("participations__submission", filter=reviewed, distinct=True),
         completed_count=Count("participations__challenge", filter=reviewed, distinct=True),
