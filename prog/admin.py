@@ -6,9 +6,9 @@ from .models_accounts import Profile
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ("user", "tipo", "created_at")
-    search_fields = ("user__username", "user__email")
-    list_filter = ("tipo", "created_at")
+    list_display = ("user", "tipo", "cnpj", "cidade", "uf", "created_at")
+    search_fields = ("user__username", "user__email", "cnpj", "cpf", "cidade")
+    list_filter = ("tipo", "uf", "created_at")
 
 
 @admin.register(Challenge)

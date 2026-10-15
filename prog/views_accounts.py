@@ -37,9 +37,9 @@ def _login(request, kind):
 def _signup(request, kind):
     if request.user.is_authenticated:
         return redirect("home")
-    form = SignupForm(request.POST or None)
+    form = SignupForm(request.POST or None, kind=kind)  # kind decide se pede CPF (dev) ou CNPJ (empresa)
     if request.method == "POST" and form.is_valid():
-        login(request, form.save(kind))
+        login(request, form.save())
         return redirect("home")
     return render(request, "accounts/signup.html", {"form": form, "kind": kind, "copy": COPY[kind]})
 

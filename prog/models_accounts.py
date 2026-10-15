@@ -13,7 +13,21 @@ class Profile(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="dca_profile"
     )
     tipo = models.CharField(max_length=10, choices=TIPOS, default=DEVELOPER)
-    cpf = models.CharField(max_length=11, unique=True)  # Dado pessoal: não exibir publicamente.
+
+    # CPF é só do desenvolvedor; CNPJ é só da empresa. O outro fica NULL
+    # (NULL não conflita com unique, então várias contas podem ficar sem um deles).
+    cpf = models.CharField(max_length=11, unique=True, null=True, blank=True)  # Dado pessoal: não exibir publicamente.
+    cnpj = models.CharField(max_length=14, unique=True, null=True, blank=True)  # 14 caracteres (aceita CNPJ alfanumérico).
+
+    # Endereço da empresa (preenchido via ViaCEP). Fica vazio para desenvolvedores.
+    cep = models.CharField(max_length=8, blank=True)
+    logradouro = models.CharField(max_length=150, blank=True)
+    numero = models.CharField(max_length=10, blank=True)
+    complemento = models.CharField(max_length=80, blank=True)
+    bairro = models.CharField(max_length=80, blank=True)
+    cidade = models.CharField(max_length=80, blank=True)
+    uf = models.CharField(max_length=2, blank=True)
+
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
