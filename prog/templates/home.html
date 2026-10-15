@@ -29,7 +29,7 @@
 
     <div class="scene scene--hero" id="hero-scene"
          role="img" aria-label="Uma mão sustenta o símbolo de programação em rotação lenta"
-         data-hand-src="{% static 'models/hand.glb' %}" data-hand-rotation="0,180,0" data-hand-scale="1.4"
+         data-hand-src="{% static 'models/hand.glb' %}" data-hand-rig="{% static 'models/hand_rig.bin' %}" data-hand-rotation="0,180,0" data-hand-scale="1.4"
          data-hand-offset="0,0,0" data-symbol-pos="0,1.85,0" data-symbol-scale="0.7">
       <canvas></canvas>
       <div class="scene__fallback" aria-hidden="true">&lt;/&gt;</div>
@@ -110,5 +110,5 @@
 
 {% block extra_js %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script type="module" src="{% static 'js/home.js' %}?v=14"></script>
+<script type="module" src="{% static 'js/home.js' %}?v=17"></script>
 {% endblock %}
