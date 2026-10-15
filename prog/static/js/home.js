@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+import { createHandRig } from "./hand_rig.js?v=1";
 
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
@@ -35,10 +36,12 @@ function createStage(el, { fov, pos, look, exposure = 1.05 }) {
   camera.position.copy(pos);
   const clock = new THREE.Clock();
   const stage = { scene, camera, renderer, onFrame: () => {}, look: look.clone() };
-  let raf = 0, visible = false;
+  let raf = 0, visible = false, prev = 0;
 
   const draw = () => {
-    stage.onFrame(clock.getElapsedTime(), Math.min(clock.getDelta(), 0.05));
+    const t = clock.getElapsedTime();
+    stage.onFrame(t, Math.min(t - prev, 0.05));
+    prev = t;
     camera.lookAt(stage.look);
     renderer.render(scene, camera);
   };
@@ -46,7 +49,7 @@ function createStage(el, { fov, pos, look, exposure = 1.05 }) {
   const sync = () => {
     cancelAnimationFrame(raf);
     if (reduceMotion) { draw(); return; }
-    if (visible && !document.hidden) { clock.getDelta(); loop(); }
+    if (visible && !document.hidden) { prev = clock.getElapsedTime(); loop(); }
   };
   const resize = () => {
     const w = el.clientWidth, h = el.clientHeight;
@@ -68,6 +71,7 @@ function createStage(el, { fov, pos, look, exposure = 1.05 }) {
     envRT.dispose(); pmrem.dispose(); renderer.dispose();
   });
   resize();
+  stage.draw = draw;
   return stage;
 }
 
@@ -107,34 +111,43 @@ function buildCodeSymbol() {
 
 /* ---------- Material técnico da mão: corpo escuro + brilho nas bordas + linhas de varredura ---------- */
 const handUniforms = { uTime: { value: 0 } };
+const handLight = { value: 0 }, noLight = { value: 0 }, rimInk = { value: new THREE.Color(0x1669b6) };   // 0 = escuro, 1 = claro (só a mão usa)
 /* Paleta por tema: corpo escuro + arestas luminosas azul -> ciano, a mesma linguagem do Coliseu */
 const PALETTE = {
-  light: { hand: 0x0f172a, sym: 0x0f172a, glow: 0x60a5fa, e1: 0x1669b6, e2: 0xbfdbfe, fx: 0x1669b6, scan: 0x84cc16, add: false },
-  dark: { hand: 0x0b1426, sym: 0x0b1426, glow: 0x3b82f6, e1: 0x2563eb, e2: 0xe2e8f0, fx: 0x60a5fa, scan: 0xa3e635, add: true },
+  /* e1/e2: arestas do </>. h1/h2: curvas de nível da mão. rim: contorno de tinta (só no claro).
+     Fundo claro pede o inverso do escuro: corpo SATURADO e escuro com linhas claras. Corpo claro some no branco
+     (medido: mão 0x7f9fcb renderizava com contraste 1,7:1; cobalto 0x1d4fc9 dá ~8:1). Mão e </> mudam juntos com o tema. */
+  light: { hand: 0x1d4fc9, sym: 0x14307a, glow: 0x60a5fa, e1: 0x38bdf8, e2: 0xf0f9ff, h1: 0x38bdf8, h2: 0xf0f9ff, rim: 0x0a1a4a, rough: 0.38, metal: 0.1, lineOp: 0.9, fx: 0x1669b6, scan: 0x84cc16, add: false },
+  dark: { hand: 0x0b1426, sym: 0x0b1426, glow: 0x3b82f6, e1: 0x2563eb, e2: 0xe2e8f0, h1: 0x2563eb, h2: 0xe2e8f0, rim: 0x3b82f6, rough: 0.5, metal: 0.35, lineOp: 0.7, fx: 0x60a5fa, scan: 0xa3e635, add: true },
 };
 const glowU = { value: new THREE.Color(0x3b82f6) };
 const themeNow = () => (document.documentElement.dataset.theme === "dark" ? PALETTE.dark : PALETTE.light);
 
 /* corpo escuro metálico + brilho de borda (fresnel) + varredura; uCut esconde a malha além de um plano (efeito de scanner) */
-function techMaterial(color = 0x0b1426, cut = { value: -100 }) {
+function techMaterial(color = 0x0b1426, cut = { value: -100 }, themed = false) {
   const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.5, metalness: 0.35, side: THREE.DoubleSide, envMapIntensity: 1.0 });
   mat.polygonOffset = true; mat.polygonOffsetFactor = 1; mat.polygonOffsetUnits = 1;   // linhas por cima do volume
   mat.onBeforeCompile = (sh) => {
     sh.uniforms.uTime = handUniforms.uTime; sh.uniforms.uGlow = glowU; sh.uniforms.uCut = cut;
+    sh.uniforms.uLight = themed ? handLight : noLight; sh.uniforms.uRim = rimInk;
     sh.vertexShader = sh.vertexShader
       .replace("#include <common>", "#include <common>\nvarying vec3 vWPos;\nvarying vec3 vLPos;")
       .replace("#include <begin_vertex>", "#include <begin_vertex>\nvWPos = (modelMatrix * vec4(transformed, 1.0)).xyz;\nvLPos = transformed;");
     sh.fragmentShader = sh.fragmentShader
-      .replace("#include <common>", "#include <common>\nvarying vec3 vWPos;\nvarying vec3 vLPos;\nuniform float uTime;\nuniform vec3 uGlow;\nuniform float uCut;")
+      .replace("#include <common>", "#include <common>\nvarying vec3 vWPos;\nvarying vec3 vLPos;\nuniform float uTime;\nuniform vec3 uGlow;\nuniform float uCut;\nuniform float uLight;\nuniform vec3 uRim;")
       .replace("#include <opaque_fragment>", `
         if (vLPos.z < uCut) discard;
         float dca_f = pow(1.0 - saturate(dot(normalize(normal), normalize(vViewPosition))), 2.4);
         float dca_l = smoothstep(0.9, 1.0, abs(sin(vWPos.y * 10.0 - uTime * 0.7)));
-        outgoingLight += uGlow * (dca_f * 0.5 + dca_l * 0.05);
+        outgoingLight += uGlow * (dca_f * 0.5 + dca_l * 0.05) * (1.0 - uLight);
+        outgoingLight = mix(outgoingLight, uRim, (dca_f * 0.6 + dca_l * 0.06) * uLight);
+        vec3 dca_c = floor(vLPos * 70.0);
+        float dca_h = fract(sin(dot(dca_c, vec3(12.9898, 78.233, 37.719))) * 43758.5453);
+        outgoingLight *= 1.0 + (dca_h - 0.5) * 0.07 * uLight;
         outgoingLight += vec3(0.75, 1.0, 0.45) * (1.0 - smoothstep(0.0, 0.1, vLPos.z - uCut)) * 1.8;
         #include <opaque_fragment>`);
   };
-  mat.customProgramCacheKey = () => "dca-tech3";
+  mat.customProgramCacheKey = () => "dca-tech6";
   return mat;
 }
 
@@ -180,14 +193,18 @@ function makeContours(geo, axes, step, mat, off, y0, y1) {
     }
     ca.needsUpdate = true;
   };
-  const update = (Pd, Nd) => {
-    for (let q = 0; q < 2 * n; q++) {
+  const update = (Pd, Nd, only) => {   // only (opcional): índices dos pontos a recalcular; sem ele, recalcula todos
+    const one = (q) => {
       const a = A[q] * 3, b = B[q] * 3, t = T[q], s = 1 - t;
       const nx = Nd[a] * s + Nd[b] * t, ny = Nd[a + 1] * s + Nd[b + 1] * t, nz = Nd[a + 2] * s + Nd[b + 2] * t, o = off / (Math.hypot(nx, ny, nz) || 1);
       pos[q * 3] = Pd[a] * s + Pd[b] * t + nx * o; pos[q * 3 + 1] = Pd[a + 1] * s + Pd[b + 1] * t + ny * o; pos[q * 3 + 2] = Pd[a + 2] * s + Pd[b + 2] * t + nz * o;
-    }
+    };
+    if (only) for (let k = 0; k < only.length; k++) one(only[k]);
+    else for (let q = 0; q < 2 * n; q++) one(q);
     pa.needsUpdate = true;
   };
+  /* pontos presos a vértices marcados em mask (ex.: dedos). Chamar depois de sortByZ, que reordena os pontos */
+  const pick = (mask) => { const out = []; for (let q = 0; q < 2 * n; q++) if (mask[A[q]] || mask[B[q]]) out.push(q); return Uint32Array.from(out); };
   /* ordena do pulso até a ponta dos dedos, para a linha "ser desenhada" na ordem da varredura */
   const sortByZ = (Pd, Nd) => {
     const zz = S.map((h) => Pd[h[0][0] * 3 + 2] * (1 - h[0][2]) + Pd[h[0][1] * 3 + 2] * h[0][2]), order = S.map((_, i) => i).sort((p, q) => zz[q] - zz[p]);
@@ -195,7 +212,7 @@ function makeContours(geo, axes, step, mat, off, y0, y1) {
   };
   const reveal = (cut) => { let lo = 0, hi = n; while (lo < hi) { const m = (lo + hi) >> 1; if (zs[m] >= cut) lo = m + 1; else hi = m; } lg.setDrawRange(0, lo * 2); };
   recolor(pal);
-  return { lines, update, recolor, sortByZ, reveal };
+  return { lines, update, recolor, sortByZ, reveal, pick };
 }
 
 /* Posiciona o modelo: orientação, escala e PalmAnchor (centro da palma) na origem */
@@ -235,15 +252,21 @@ function initHeroScene() {
   const symbol = buildCodeSymbol(); symbol.scale.setScalar(cfg.ss); scene.add(symbol);
   const root = new THREE.Group(), wrist = new THREE.Group(), orient = new THREE.Group();
   root.add(wrist); wrist.add(orient); scene.add(root);
-  const state = { lift: 0, lift2: 0, spin: 0, reveal: 1, rise: 1, fx: 0, scan: 1 };   // lift: mão; lift2: símbolo (um pouco atrasado = o impulso)
+  const state = { lift: 0, lift2: 0, spin: 0, reveal: 1, rise: 1, fx: 0, scan: 1, life: 0, curl: [1, 1, 1, 1, 1] };   // lift: mão; lift2: símbolo (atrasado = o impulso); curl: 1 = dedo fechado, 0 = aberto; life: intensidade do movimento ocioso dos dedos
 
   const plain = new THREE.MeshStandardMaterial({ color: 0x14213d, metalness: 0.3, roughness: 0.45, side: THREE.DoubleSide });
   const handMeshes = [];
   stage.renderer.debug.onShaderError = () => handMeshes.forEach((m) => { m.material = plain; });   // se o shader falhar, usa material simples
 
-  const handCut = { value: -100 }, handMat = techMaterial(PALETTE.light.hand, handCut);
+  const handCut = { value: -100 }, handMat = techMaterial(PALETTE.light.hand, handCut, true);
   const handLineMat = new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.7 });
   let lastCut = NaN, contours = null, scanRing = null;
+
+  /* dedos: hand_rig.bin diz a que dedo cada vértice pertence. Se faltar ou não bater com o GLB, a mão fica rígida como antes */
+  let rig = null, rigGeo = null, rigTouch = null;
+  const rigReq = el.dataset.handRig
+    ? fetch(el.dataset.handRig).then((r) => (r.ok ? r.arrayBuffer() : null)).catch(() => null)
+    : Promise.resolve(null);
 
   new GLTFLoader().load(
     el.dataset.handSrc,
@@ -256,13 +279,22 @@ function initHeroScene() {
         const geo = o.geometry;
         contours = makeContours(geo, [2, 0], 0.15, handLineMat, 0.005, -1.3, 0.5);
         contours.sortByZ(geo.attributes.position.array, geo.attributes.normal.array);   // ordem de varredura: do pulso aos dedos
-        o.add(contours.lines);
+        o.add(contours.lines); rigGeo = geo;
         const pts = Array.from({ length: 96 }, (_, i) => { const a = (i / 96) * 6.2832; return new THREE.Vector3(-0.15 + 1.3 * Math.cos(a), -0.4 + Math.sin(a), 0); });
         scanRing = new THREE.Group();   // anel do "scanner" que constrói a mão do pulso até os dedos
         [0, 0.07].forEach((dz) => { const l = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0x7df9ff, transparent: true, opacity: dz ? 0.35 : 1 })); l.position.z = dz; scanRing.add(l); });
         scanRing.visible = false; o.add(scanRing);
       } });
-      lastCut = NaN; applyTheme();
+      lastCut = NaN; applyTheme(true);
+      rigReq.then((buf) => {
+        if (!rigGeo || !contours) return;
+        const { position, normal } = rigGeo.attributes;
+        position.setUsage(THREE.DynamicDrawUsage); normal.setUsage(THREE.DynamicDrawUsage);
+        rig = createHandRig(position, normal, buf);
+        if (rig) rigTouch = contours.pick(rig.owner);
+        else if (buf) console.warn("[DevCodeArena] hand_rig.bin não corresponde ao hand.glb. Rode tools/bake_hand_rig.py.");
+        if (reduceMotion) stage.draw();
+      });
       intro();
     },
     undefined,
@@ -285,15 +317,17 @@ function initHeroScene() {
   let tl, last = 0;
   const intro = () => {
     last = performance.now();
-    if (reduceMotion || !window.gsap) { Object.assign(state, { reveal: 1, rise: 1, spin: 1, fx: 0, scan: 1 }); return; }
+    if (reduceMotion || !window.gsap) { Object.assign(state, { reveal: 1, rise: 1, spin: 1, fx: 0, scan: 1, life: 0 }); state.curl.fill(0); return; }
     tl && tl.kill();
-    Object.assign(state, { scan: 0, reveal: 0, rise: 0, fx: 0, spin: 0 });
+    Object.assign(state, { scan: 0, reveal: 0, rise: 0, fx: 0, spin: 0, life: 0 }); state.curl.fill(1);
     tl = gsap.timeline()
       .to(state, { scan: 1, duration: 2.3, ease: "power1.inOut" }, 0.2)         // 1) scanner constrói a mão, do pulso aos dedos
       .to(state, { fx: 1, duration: 1.8, ease: "none" }, 2.2)                   // 2) pulso e partículas na palma
       .to(state, { reveal: 1, duration: 1.6, ease: "power2.inOut" }, 2.4)       // 3) </> se forma
       .to(state, { rise: 1, duration: 2.4, ease: "elastic.out(1, 0.5)" }, 2.4)
-      .to(state, { spin: 1, duration: 3, ease: "power2.out" }, 2.5);
+      .to(state, { spin: 1, duration: 3, ease: "power2.out" }, 2.5)
+      .to(state, { life: 1, duration: 2.5, ease: "sine.inOut" }, 4.4);          // 4) os dedos passam a respirar
+    [0, 1, 2, 3, 4].forEach((i) => tl.to(state.curl, { [i]: 0, duration: 1.3, ease: "back.out(1.6)" }, 2.5 + i * 0.16));   // dedos abrem em cascata, do mindinho ao polegar
   };
   if (!reduceMotion && window.gsap) {
     Object.assign(state, { scan: 0, reveal: 0, rise: 0 });   // começa com a mão fechada e sem símbolo
@@ -301,18 +335,61 @@ function initHeroScene() {
     gsap.to(state, { lift2: 1, duration: 3.4, ease: "sine.inOut", yoyo: true, repeat: -1, delay: 5.28 });             // o símbolo acompanha, com atraso
   }
 
-  const applyTheme = () => {
+  /* mão: 0 = escuro (metal com brilho), 1 = claro (porcelana com contorno de tinta e grão). Anima entre os dois. */
+  const hex = (k) => ({ d: new THREE.Color(PALETTE.dark[k]), l: new THREE.Color(PALETTE.light[k]) });
+  const C = { hand: hex("hand"), h1: hex("h1"), h2: hex("h2"), rim: hex("rim"), glow: hex("glow"), sym: hex("sym"), e1: hex("e1"), e2: hex("e2") };
+  const lineA = new THREE.Color(), lineB = new THREE.Color(), edgeA = new THREE.Color(), edgeB = new THREE.Color();
+  let themeMix = themeNow() === PALETTE.light ? 1 : 0, themeTarget = themeMix;
+  const paintHand = (m) => {
+    const D = PALETTE.dark, L = PALETTE.light, mx = (a, b) => a + (b - a) * m;
+    handMat.color.copy(C.hand.d).lerp(C.hand.l, m);
+    handMat.roughness = mx(D.rough, L.rough); handMat.metalness = mx(D.metal, L.metal); handMat.envMapIntensity = 1;
+    handLight.value = m; rimInk.value.copy(C.rim.d).lerp(C.rim.l, m); glowU.value.copy(C.glow.d).lerp(C.glow.l, m);
+    handLineMat.opacity = mx(D.lineOp, L.lineOp);
+    contours && contours.recolor({ e1: lineA.copy(C.h1.d).lerp(C.h1.l, m), e2: lineB.copy(C.h2.d).lerp(C.h2.l, m) });
+    symbol.userData.body.color.copy(C.sym.d).lerp(C.sym.l, m);   // o </> acompanha a mão
+    recolorSymbol(symbol, { e1: edgeA.copy(C.e1.d).lerp(C.e1.l, m), e2: edgeB.copy(C.e2.d).lerp(C.e2.l, m) });
+    key.intensity = mx(2.2, 2.6); rim.intensity = mx(2.6, 2.2); fill.intensity = mx(30, 18);
+    stage.renderer.toneMappingExposure = mx(1.05, 1.1);
+  };
+  const applyTheme = (snap) => {
     const p = themeNow();
-    glowU.value.set(p.glow); handMat.color.set(p.hand); symbol.userData.body.color.set(p.sym); recolorSymbol(symbol, p);
-    contours && contours.recolor(p); scanRing && scanRing.children.forEach((l) => l.material.color.set(p.scan));
+    themeTarget = p === PALETTE.light ? 1 : 0;
+    if (snap === true || reduceMotion) { themeMix = themeTarget; paintHand(themeMix); }
+    scanRing && scanRing.children.forEach((l) => l.material.color.set(p.scan));
     rings.forEach((m) => { m.material.color.set(p.fx); m.material.blending = p.add ? THREE.AdditiveBlending : THREE.NormalBlending; m.material.needsUpdate = true; });
     sparks.material.color.set(p.fx); sparks.material.blending = p.add ? THREE.AdditiveBlending : THREE.NormalBlending; sparks.material.needsUpdate = true;
+    if (reduceMotion) stage.draw();   // sem animação rodando, repinta uma vez
   };
-  applyTheme();
+  applyTheme(true);
   new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
-  stage.onFrame = (t) => {
+  /* ângulos em radianos [DIP, PIP, MCP]. Ocioso: onda que corre do mindinho ao indicador e, em cada dedo,
+     da base para a ponta (cada articulação atrasa um pouco = movimento fluido). Fechado: pose inicial. */
+  const IDLE = [0.08, 0.11, 0.06], CLOSE = [0.22, 0.32, 0.2];
+  const MOTION = [{ amp: 0.8, close: 0.6 }, { amp: 0.9, close: 0.8 }, { amp: 1, close: 1 }, { amp: 1, close: 1 }, { amp: 0.55, close: 0.5 }];   // mindinho, anelar, médio, indicador, polegar
+  const poseFingers = (t) => {
+    const relax = (0.5 - state.lift) * 0.06 * state.life;   // mão sobe: dedos relaxam; desce: fecham um pouco
+    for (let i = 0; i < MOTION.length; i++) {
+      const m = MOTION[i], ph = t * 1.1 - i * 0.55, c = state.curl[i] * m.close, a = state.life * m.amp;
+      rig.pose(i,
+        a * IDLE[0] * Math.sin(ph - 0.9) + c * CLOSE[0] + relax,
+        a * IDLE[1] * Math.sin(ph - 0.45) + c * CLOSE[1] + relax,
+        a * IDLE[2] * Math.sin(ph) + c * CLOSE[2] + relax);
+    }
+  };
+
+  stage.onFrame = (t, dt) => {
     handUniforms.uTime.value = t;
+    if (themeMix !== themeTarget) {   // transição do tema (~0,6 s)
+      themeMix += (themeTarget - themeMix) * (1 - Math.exp(-dt * 7));
+      if (Math.abs(themeTarget - themeMix) < 0.003) themeMix = themeTarget;
+      paintHand(themeMix);
+    }
+    if (rig) {
+      poseFingers(t);
+      if (rig.apply()) contours.update(rigGeo.attributes.position.array, rigGeo.attributes.normal.array, rigTouch);
+    }
     const cut = state.scan >= 1 ? -100 : 1.15 - state.scan * 3.9;
     if (cut !== lastCut) { lastCut = cut; handCut.value = cut; contours && contours.reveal(cut); if (scanRing) { scanRing.position.z = cut; scanRing.visible = state.scan > 0 && state.scan < 1; } }
     const rv = Math.min(1, state.reveal), ud = symbol.userData;
