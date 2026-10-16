@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Entrar — DevCodeArena{% endblock %}
+{% block content %}
+<section class="platform-page">
+  <div class="container">
+    <header class="platform-hero platform-hero--compact">
+      <div>
+        <p class="eyebrow">BEM-VINDO DE VOLTA</p>
+        <h1>Como você quer entrar?</h1>
+        <p>Escolha o tipo da sua conta para continuar.</p>
+      </div>
+    </header>
+    <nav aria-label="Tipo de conta" class="hero__actions">
+      <a class="btn-dca btn-dca--primary" href="{% url 'login_dev' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Entrar como desenvolvedor</a>
+      <a class="btn-dca btn-dca--outline" href="{% url 'login_company' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Entrar como empresa</a>
+    </nav>
+  </div>
+</section>
+{% endblock %}

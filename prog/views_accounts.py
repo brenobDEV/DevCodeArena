@@ -8,11 +8,11 @@ COPY = {
     Profile.DEVELOPER: {
         "slug": "dev", "glyph": "</>", "badge": "Para desenvolvedores",
         "login_title": "Entre e deixe seu código falar.", "login_text": "Acesse seus desafios, envie soluções e acompanhe as oportunidades.",
-        "signup_title": "Crie sua conta de desenvolvedor.", "signup_text": "Resolva desafios inspirados em problemas reais. Quem avalia vê a solução, não o nome.",
+        "signup_title": "Crie sua conta de desenvolvedor.", "signup_text": "Resolva desafios inspirados em problemas reais e apresente suas habilidades às empresas.",
     },
     Profile.COMPANY: {
         "slug": "empresa", "glyph": "{ }", "badge": "Para empresas",
-        "login_title": "Encontre talentos pelo que eles entregam.", "login_text": "Gerencie desafios, avalie soluções às cegas e converse com quem se destacou.",
+        "login_title": "Encontre talentos pelo que eles entregam.", "login_text": "Gerencie desafios, avalie soluções e converse com quem se destacou.",
         "signup_title": "Crie sua conta de empresa.", "signup_text": "Publique desafios baseados em problemas reais e descubra desenvolvedores pelas soluções.",
     },
 }
@@ -34,10 +34,16 @@ def _login(request, kind):
     return render(request, "accounts/login.html", {"form": form, "kind": kind, "copy": COPY[kind], "next": _safe_next(request)})
 
 
+def login_choose(request):
+    if request.user.is_authenticated:
+        return redirect("home")
+    return render(request, "accounts/login_choose.html", {"next": _safe_next(request)})
+
+
 def _signup(request, kind):
     if request.user.is_authenticated:
         return redirect("home")
-    form = SignupForm(request.POST or None)
+    form = SignupForm(request.POST or None, kind=kind)
     if request.method == "POST" and form.is_valid():
         login(request, form.save(kind))
         return redirect("home")

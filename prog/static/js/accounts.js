@@ -16,3 +16,15 @@ document.querySelectorAll('[data-mask="cpf"]').forEach((input) => {
     input.value = d.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
   });
 });
+
+document.querySelectorAll('[data-mask="cnpj"]').forEach((input) => {
+  input.addEventListener("input", () => {
+    const value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 14);
+    const parts = [value.slice(0, 2), value.slice(2, 5), value.slice(5, 8), value.slice(8, 12), value.slice(12, 14)];
+    input.value = parts[0]
+      + (parts[1] ? `.${parts[1]}` : "")
+      + (parts[2] ? `.${parts[2]}` : "")
+      + (parts[3] ? `/${parts[3]}` : "")
+      + (parts[4] ? `-${parts[4]}` : "");
+  });
+});

@@ -24,6 +24,25 @@ def valid_cpf(cpf):
     return True
 
 
+def normalize_cnpj(value):
+    return re.sub(r"[^A-Z0-9]", "", (value or "").upper())
+
+
+def valid_cnpj(cnpj):
+    cnpj = normalize_cnpj(cnpj)
+    if len(cnpj) != 14 or cnpj == cnpj[0] * 14 or not cnpj[:12].isalnum() or not cnpj[12:].isdigit():
+        return False
+
+    def check_digit(value, weights):
+        total = sum((ord(char) - 48) * weight for char, weight in zip(value, weights))
+        remainder = total % 11
+        return "0" if remainder < 2 else str(11 - remainder)
+
+    first_digit = check_digit(cnpj[:12], (5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2))
+    second_digit = check_digit(cnpj[:12] + first_digit, (6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2))
+    return cnpj[-2:] == first_digit + second_digit
+
+
 class StyledForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -36,9 +55,20 @@ class SignupForm(StyledForm):
                            widget=forms.TextInput(attrs={"autocomplete": "name", "placeholder": "Seu nome completo"}))
     cpf = forms.CharField(label="CPF", max_length=14,
                           widget=forms.TextInput(attrs={"inputmode": "numeric", "autocomplete": "off", "placeholder": "000.000.000-00", "data-mask": "cpf"}))
+    cnpj = forms.CharField(label="CNPJ", max_length=18,
+                           widget=forms.TextInput(attrs={"inputmode": "text", "autocomplete": "off", "placeholder": "00.000.000/0000-00", "data-mask": "cnpj"}))
     email = forms.EmailField(label="E-mail", widget=forms.EmailInput(attrs={"autocomplete": "email", "placeholder": "voce@email.com"}))
     senha = forms.CharField(label="Senha", widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}))
     senha2 = forms.CharField(label="Confirmar senha", widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}))
+
+    def __init__(self, *args, kind=Profile.DEVELOPER, **kwargs):
+        super().__init__(*args, **kwargs)
+        if kind == Profile.COMPANY:
+            self.fields.pop("cpf")
+        else:
+            self.fields.pop("cnpj")
+        for field in self.fields.values():
+            field.widget.attrs.setdefault("class", "field__input")
 
     def clean_nome(self):
         return " ".join(self.cleaned_data["nome"].split())
@@ -50,6 +80,14 @@ class SignupForm(StyledForm):
         if Profile.objects.filter(cpf=cpf).exists():
             raise forms.ValidationError("Este CPF já está cadastrado.")
         return cpf
+
+    def clean_cnpj(self):
+        cnpj = normalize_cnpj(self.cleaned_data["cnpj"])
+        if not valid_cnpj(cnpj):
+            raise forms.ValidationError("Informe um CNPJ válido.")
+        if Profile.objects.filter(cnpj=cnpj).exists():
+            raise forms.ValidationError("Este CNPJ já está cadastrado.")
+        return cnpj
 
     def clean_email(self):
         email = self.cleaned_data["email"].strip().lower()
@@ -73,7 +111,7 @@ class SignupForm(StyledForm):
     def save(self, kind):
         d = self.cleaned_data
         user = User.objects.create_user(username=d["email"], email=d["email"], password=d["senha"], first_name=d["nome"][:150])
-        Profile.objects.create(user=user, tipo=kind, cpf=d["cpf"])
+        Profile.objects.create(user=user, tipo=kind, cpf=d.get("cpf"), cnpj=d.get("cnpj"))
         return user
 
 

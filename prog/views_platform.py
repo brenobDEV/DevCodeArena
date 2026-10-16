@@ -9,7 +9,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from .forms_platform import ChallengeForm, MessageForm, ReviewSubmissionForm, SubmissionForm
+from .forms_platform import (
+    ChallengeForm, MessageForm, ProfileForm, ReviewSubmissionForm, SubmissionForm,
+)
 from .models import Challenge, Conversation, Message, Participation, Submission
 from .models_accounts import Profile
 
@@ -168,7 +170,12 @@ def account_profile(request):
     profile = _profile(request)
     if not profile:
         return HttpResponseForbidden("Esta conta não possui um perfil DevCodeArena válido.")
-    return render(request, "platform/profile.html", {"profile": profile})
+    form = ProfileForm(request.POST or None, instance=profile)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Seu perfil foi atualizado.")
+        return redirect("account_profile")
+    return render(request, "platform/profile.html", {"profile": profile, "form": form})
 
 
 @login_required
@@ -178,17 +185,30 @@ def company_dashboard(request):
         return HttpResponseForbidden("Esta área é exclusiva para contas de empresa.")
     own = Challenge.objects.filter(company=profile)
     now = timezone.now()
+    metrics = own.aggregate(
+        total_challenges=Count("pk", distinct=True),
+        active_challenges=Count(
+            "pk",
+            filter=Q(
+                status=Challenge.STATUS_PUBLISHED,
+                is_active=True,
+                deadline__gte=now,
+            ) & (Q(start_at__isnull=True) | Q(start_at__lte=now)),
+            distinct=True,
+        ),
+        closed_challenges=Count(
+            "pk", filter=Q(status=Challenge.STATUS_CLOSED), distinct=True
+        ),
+        participation_count=Count("participations", distinct=True),
+        submission_count=Count("participations__submission", distinct=True),
+        selected_count=Count(
+            "participations",
+            filter=Q(participations__status=Participation.STATUS_SELECTED),
+            distinct=True,
+        ),
+    )
     context = {
-        "total_challenges": own.count(),
-        "active_challenges": own.filter(
-            status=Challenge.STATUS_PUBLISHED, is_active=True, deadline__gte=now
-        ).filter(Q(start_at__isnull=True) | Q(start_at__lte=now)).count(),
-        "closed_challenges": own.filter(status=Challenge.STATUS_CLOSED).count(),
-        "participation_count": Participation.objects.filter(challenge__company=profile).count(),
-        "submission_count": Submission.objects.filter(participation__challenge__company=profile).count(),
-        "selected_count": Participation.objects.filter(
-            challenge__company=profile, status=Participation.STATUS_SELECTED
-        ).count(),
+        **metrics,
         "recent_challenges": own.annotate(
             participant_count=Count("participations", distinct=True),
             submission_count=Count("participations__submission", distinct=True),

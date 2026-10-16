@@ -55,7 +55,11 @@
         <div class="auth__alert" role="alert">{% for e in form.non_field_errors %}<p>{{ e }}</p>{% endfor %}</div>
         {% endif %}
         {% include "accounts/_field.html" with field=form.nome %}
-        {% include "accounts/_field.html" with field=form.cpf %}
+        {% if kind == "company" %}
+          {% include "accounts/_field.html" with field=form.cnpj %}
+        {% else %}
+          {% include "accounts/_field.html" with field=form.cpf %}
+        {% endif %}
         {% include "accounts/_field.html" with field=form.email %}
         {% include "accounts/_field.html" with field=form.senha %}
         {% include "accounts/_field.html" with field=form.senha2 %}

@@ -13,7 +13,15 @@ class Profile(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="dca_profile"
     )
     tipo = models.CharField(max_length=10, choices=TIPOS, default=DEVELOPER)
-    cpf = models.CharField(max_length=11, unique=True)  # Dado pessoal: não exibir publicamente.
+    cpf = models.CharField(max_length=11, unique=True, null=True, blank=True)  # Dado pessoal: não exibir publicamente.
+    cnpj = models.CharField(max_length=14, unique=True, null=True, blank=True)
+    bio = models.TextField(blank=True)
+    skills = models.CharField(max_length=500, blank=True)
+    technologies = models.CharField(max_length=500, blank=True)
+    portfolio_url = models.URLField(max_length=500, blank=True)
+    github_url = models.URLField(max_length=500, blank=True)
+    linkedin_url = models.URLField(max_length=500, blank=True)
+    website_url = models.URLField(max_length=500, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
