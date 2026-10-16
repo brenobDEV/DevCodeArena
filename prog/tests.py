@@ -45,7 +45,14 @@ class PlatformTestCase(TestCase):
 
 
 class ChallengeFlowTests(PlatformTestCase):
-    def test_public_list_renders_published_challenge(self):
+    def test_anonymous_visitor_is_sent_to_login_from_challenge_pages(self):
+        for name, args in (("challenge_periods", ()), ("challenge_list", ()), ("challenge_detail", (self.challenge.pk,))):
+            with self.subTest(page=name):
+                url = reverse(name, args=args)
+                self.assertRedirects(self.client.get(url), f"{reverse('login')}?next={url}")
+
+    def test_list_renders_published_challenge_for_logged_user(self):
+        self.login_as(self.dev_user)
         response = self.client.get(reverse("challenge_list"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "API Challenge")
@@ -177,14 +184,47 @@ class ProfileTests(PlatformTestCase):
 
 
 class SignupIdentifierTests(TestCase):
+    ADDRESS = {
+        "cep": "01310-100", "logradouro": "Avenida Paulista", "numero": "1000",
+        "complemento": "Sala 2", "bairro": "Bela Vista", "cidade": "São Paulo", "uf": "sp",
+    }
+
     def signup_data(self, identifier_name, identifier_value):
-        return {
+        data = {
             "nome": "Conta de Teste",
             identifier_name: identifier_value,
             "email": f"{identifier_name}@example.test",
             "senha": "Complex-Test-Password-984!",
             "senha2": "Complex-Test-Password-984!",
         }
+        if identifier_name == "cnpj":  # empresa também informa o endereço
+            data.update(self.ADDRESS)
+        return data
+
+    def test_company_signup_saves_normalized_address(self):
+        self.client.post(reverse("signup_company"), self.signup_data("cnpj", "04.252.011/0001-10"))
+        profile = Profile.objects.get(user__email="cnpj@example.test")
+        self.assertEqual((profile.cep, profile.uf, profile.cidade), ("01310100", "SP", "São Paulo"))
+        self.assertEqual(profile.logradouro, "Avenida Paulista")
+
+    def test_company_signup_requires_address(self):
+        data = self.signup_data("cnpj", "04.252.011/0001-10")
+        for field in ("cep", "logradouro", "numero", "bairro", "cidade", "uf"):
+            data.pop(field)
+        response = self.client.post(reverse("signup_company"), data)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Por favor, informe o CEP da empresa.")
+        self.assertFalse(Profile.objects.filter(user__email="cnpj@example.test").exists())
+
+    def test_company_signup_rejects_invalid_cep_and_uf(self):
+        data = self.signup_data("cnpj", "04.252.011/0001-10") | {"cep": "123", "uf": "XX"}
+        response = self.client.post(reverse("signup_company"), data)
+        self.assertContains(response, "Informe um CEP válido (8 números).")
+        self.assertContains(response, "Informe uma UF válida (ex.: SP).")
+
+    def test_developer_signup_does_not_ask_for_address(self):
+        response = self.client.get(reverse("signup_dev"))
+        self.assertNotContains(response, 'name="cep"')
 
     def test_company_signup_requires_and_saves_cnpj_instead_of_cpf(self):
         response = self.client.post(
@@ -327,6 +367,7 @@ class ChallengeManagementTests(PlatformTestCase):
             status=Challenge.STATUS_PUBLISHED,
             is_active=True,
         )
+        self.login_as(self.dev_user)
         response = self.client.get(reverse("challenge_list"), {"language": "Python"})
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "API Challenge")
@@ -356,6 +397,7 @@ class ChallengeFormValidationTests(TestCase):
 
 class NavigationTests(PlatformTestCase):
     def test_challenge_pages_have_accessible_lightweight_3d_visual(self):
+        self.login_as(self.dev_user)
         for url_name in ("challenge_periods", "challenge_list"):
             with self.subTest(page=url_name):
                 response = self.client.get(reverse(url_name))
@@ -375,9 +417,35 @@ class NavigationTests(PlatformTestCase):
         self.assertContains(response, "arena-podium")
         self.assertContains(response, "TALENTO EM DESTAQUE")
         self.assertContains(response, "data-tilt")
-        self.assertNotContains(response, "three.module.js")
-        self.assertNotContains(response, "gsap.min.js")
-        self.assertNotContains(response, "models/hand.glb")
+        # mão 3D abaixo da imagem da arena e coliseu na seção "uma arena, dois caminhos"
+        self.assertContains(response, 'id="hero-scene"')
+        self.assertContains(response, "models/hand.glb")
+        self.assertContains(response, 'id="arena-scene"')
+        self.assertContains(response, "three.module.js")
+        self.assertContains(response, "home_motion.js")
+
+    def test_login_page_offers_both_account_types(self):
+        response = self.client.get(reverse("login"), {"next": "/desafios/"})
+        self.assertContains(response, "auth--choose")
+        self.assertContains(response, reverse("login_dev") + "?next=/desafios/")
+        self.assertContains(response, reverse("login_company") + "?next=/desafios/")
+        self.assertContains(response, reverse("signup"))
+
+    def test_homepage_next_step_never_sends_visitor_to_logged_area(self):
+        response = self.client.get(reverse("home"))
+        html = response.content.decode()
+        block = html[html.index('class="next-step"'):html.index("</section>", html.index('class="next-step"'))]
+        self.assertIn(reverse("signup"), block)
+        self.assertIn(reverse("login"), block)
+        self.assertNotIn(reverse("challenge_periods"), block)
+        self.assertNotIn(reverse("leaderboard"), html[html.index("site-footer"):])
+
+    def test_homepage_next_step_for_logged_developer_goes_to_challenges(self):
+        self.login_as(self.dev_user)
+        html = self.client.get(reverse("home")).content.decode()
+        block = html[html.index('class="next-step"'):html.index("</section>", html.index('class="next-step"'))]
+        self.assertIn(reverse("challenge_periods"), block)
+        self.assertNotIn(reverse("signup"), block)
 
     def test_authenticated_developer_sees_header_navigation(self):
         self.login_as(self.dev_user)

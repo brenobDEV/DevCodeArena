@@ -1,19 +1,30 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Entrar — DevCodeArena{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/accounts.css' %}?v=9">{% endblock %}
+
 {% block content %}
-<section class="platform-page">
+<section class="auth auth--choose">
   <div class="container">
-    <header class="platform-hero platform-hero--compact">
-      <div>
-        <p class="eyebrow">BEM-VINDO DE VOLTA</p>
-        <h1>Como você quer entrar?</h1>
-        <p>Escolha o tipo da sua conta para continuar.</p>
-      </div>
+    <header class="auth__intro">
+      <h1 class="auth__title">Entrar</h1>
+      <p class="auth__text">Escolha o tipo da sua conta para continuar.</p>
     </header>
-    <nav aria-label="Tipo de conta" class="hero__actions">
-      <a class="btn-dca btn-dca--primary" href="{% url 'login_dev' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Entrar como desenvolvedor</a>
-      <a class="btn-dca btn-dca--outline" href="{% url 'login_company' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Entrar como empresa</a>
-    </nav>
+    <div class="choose">
+      <a class="choose__card choose__card--dev" href="{% url 'login_dev' %}{% if next %}?next={{ next|urlencode }}{% endif %}">
+        <span class="choose__glyph" aria-hidden="true">&lt;/&gt;</span>
+        <h2>Sou DEV</h2>
+        <p>Acesse seus desafios, envie soluções e acompanhe as oportunidades.</p>
+        <span class="choose__go">Entrar como desenvolvedor <i class="bi bi-arrow-right" aria-hidden="true"></i></span>
+      </a>
+      <a class="choose__card choose__card--company" href="{% url 'login_company' %}{% if next %}?next={{ next|urlencode }}{% endif %}">
+        <span class="choose__glyph" aria-hidden="true">{ }</span>
+        <h2>Sou empresa</h2>
+        <p>Gerencie desafios, avalie soluções e converse com quem se destacou.</p>
+        <span class="choose__go">Entrar como empresa <i class="bi bi-arrow-right" aria-hidden="true"></i></span>
+      </a>
+    </div>
+    <p class="auth__switch auth__switch--center">Ainda não tem conta? <a href="{{ nav.signup }}">Criar conta</a></p>
   </div>
 </section>
 {% endblock %}

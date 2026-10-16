@@ -4,6 +4,7 @@ from django.urls import NoReverseMatch, reverse
 
 URL_NAMES = {
     "home": "home",
+    "login": "login",
     "login_dev": "login_dev",
     "login_company": "login_company",
     "signup": "signup",

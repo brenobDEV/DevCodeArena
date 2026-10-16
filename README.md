@@ -52,3 +52,12 @@ Abra http://127.0.0.1:8000/ no navegador. Acesse o Django Admin em /admin/ depoi
 ## Testes
 
 Os testes automatizados cobrem listagem, inscrição única, bloqueio de papéis indevidos, propriedade de desafios, privacidade das conversas, persistência de mensagens e critérios do ranking. Execute `python manage.py test` no ambiente com dependências instaladas.
+
+
+## Versão unificada (home + backend)
+
+- Home: arena em CSS com a **mão 3D segurando um `</>` girando** logo abaixo; **coliseu 3D** em "Uma arena, dois caminhos"; seções com fundos e divisores próprios.
+- `home.js` (three.js + GSAP) é separado de `home_motion.js` (reveal/tilt): se o CDN falhar, a página segue funcionando e as cenas mostram um fallback após 8 s.
+- Páginas de desafios (`/desafios/…`) exigem login; visitantes vão para `/entrar/?next=…`. Para torná-las públicas de novo, remova `@login_required` de `challenge_periods`, `challenge_list` e `challenge_detail` em `views_platform.py`.
+- Cadastro de empresa com endereço (CEP/ViaCEP) — migração `0006_profile_endereco`.
+- Se você tinha um banco da versão antiga (`0004_profile_cnpj`/`0005_profile_endereco`), apague-o e rode `python manage.py migrate`.

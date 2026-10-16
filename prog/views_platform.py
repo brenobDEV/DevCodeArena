@@ -30,6 +30,7 @@ def _available_challenges():
     ).filter(Q(start_at__isnull=True) | Q(start_at__lte=now))
 
 
+@login_required
 def challenge_periods(request):
     challenges = _available_challenges()
     weekly = challenges.filter(period=Challenge.PERIOD_WEEKLY)
@@ -41,6 +42,7 @@ def challenge_periods(request):
     })
 
 
+@login_required
 def challenge_list(request):
     now = timezone.now()
     challenges = Challenge.objects.select_related("company__user").filter(
@@ -88,6 +90,7 @@ def challenge_list(request):
     })
 
 
+@login_required
 def challenge_detail(request, challenge_id):
     challenge = get_object_or_404(Challenge.objects.select_related("company__user"), pk=challenge_id)
     profile = _profile(request)

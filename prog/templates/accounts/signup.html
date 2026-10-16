@@ -57,6 +57,13 @@
         {% include "accounts/_field.html" with field=form.nome %}
         {% if kind == "company" %}
           {% include "accounts/_field.html" with field=form.cnpj %}
+          {% include "accounts/_field.html" with field=form.cep %}
+          {% include "accounts/_field.html" with field=form.logradouro %}
+          {% include "accounts/_field.html" with field=form.numero %}
+          {% include "accounts/_field.html" with field=form.complemento %}
+          {% include "accounts/_field.html" with field=form.bairro %}
+          {% include "accounts/_field.html" with field=form.cidade %}
+          {% include "accounts/_field.html" with field=form.uf %}
         {% else %}
           {% include "accounts/_field.html" with field=form.cpf %}
         {% endif %}
@@ -75,4 +82,4 @@
 {% endif %}
 {% endblock %}
 
-{% block extra_js %}<script src="{% static 'js/accounts.js' %}?v=8" defer></script>{% endblock %}
+{% block extra_js %}<script src="{% static 'js/accounts.js' %}?v=11" defer></script>{% endblock %}

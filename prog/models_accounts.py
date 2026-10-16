@@ -14,7 +14,17 @@ class Profile(models.Model):
     )
     tipo = models.CharField(max_length=10, choices=TIPOS, default=DEVELOPER)
     cpf = models.CharField(max_length=11, unique=True, null=True, blank=True)  # Dado pessoal: não exibir publicamente.
-    cnpj = models.CharField(max_length=14, unique=True, null=True, blank=True)
+    cnpj = models.CharField(max_length=14, unique=True, null=True, blank=True)  # 14 caracteres (aceita CNPJ alfanumérico).
+
+    # Endereço da empresa (preenchido via ViaCEP no cadastro). Fica vazio para desenvolvedores.
+    cep = models.CharField(max_length=8, blank=True)
+    logradouro = models.CharField(max_length=150, blank=True)
+    numero = models.CharField(max_length=10, blank=True)
+    complemento = models.CharField(max_length=80, blank=True)
+    bairro = models.CharField(max_length=80, blank=True)
+    cidade = models.CharField(max_length=80, blank=True)
+    uf = models.CharField(max_length=2, blank=True)
+
     bio = models.TextField(blank=True)
     skills = models.CharField(max_length=500, blank=True)
     technologies = models.CharField(max_length=500, blank=True)
