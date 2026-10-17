@@ -35,6 +35,7 @@ class Profile(models.Model):
     github_url = models.URLField(max_length=500, blank=True)
     linkedin_url = models.URLField(max_length=500, blank=True)
     website_url = models.URLField(max_length=500, blank=True)
+    avatar = models.ImageField(upload_to="profile_photos/", blank=True)
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):

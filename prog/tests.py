@@ -1,14 +1,19 @@
 from datetime import timedelta
 from decimal import Decimal
+from io import BytesIO
+import os
+import tempfile
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
+from PIL import Image
 
 from .models import Challenge, Conversation, Message, Participation, Submission
 from .models_accounts import Profile
-from .forms_platform import ChallengeForm
+from .forms_platform import MAX_AVATAR_DIMENSION, MAX_AVATAR_SIZE, ChallengeForm
 from .forms_accounts import valid_cnpj
 
 User = get_user_model()
@@ -134,6 +139,12 @@ class ChallengeFlowTests(PlatformTestCase):
 
 
 class ProfileTests(PlatformTestCase):
+    @staticmethod
+    def make_image(format="PNG", size=(32, 32)):
+        image_data = BytesIO()
+        Image.new("RGB", size, color="royalblue").save(image_data, format=format)
+        return image_data.getvalue()
+
     def test_profile_editor_is_personalized_for_developers_and_companies(self):
         self.company.cnpj = "12345678000195"
         self.company.save(update_fields=["cnpj"])
@@ -202,6 +213,175 @@ class ProfileTests(PlatformTestCase):
         self.assertContains(response, "Informe uma URL válida")
         self.developer.refresh_from_db()
         self.assertEqual(self.developer.portfolio_url, "")
+
+    def test_invalid_profile_submission_keeps_saved_photo_preview(self):
+        self.login_as(self.dev_user)
+        with tempfile.TemporaryDirectory() as media_root, override_settings(MEDIA_ROOT=media_root):
+            self.developer.avatar.save(
+                "saved.png",
+                SimpleUploadedFile("saved.png", self.make_image(), content_type="image/png"),
+                save=True,
+            )
+            saved_photo_url = self.developer.avatar.url
+            response = self.client.post(reverse("account_profile"), {
+                "public_name": "Dev Público",
+                "portfolio_url": "not-a-url",
+                "avatar": SimpleUploadedFile(
+                    "new.png", self.make_image(), content_type="image/png",
+                ),
+            })
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, saved_photo_url)
+            self.developer.refresh_from_db()
+            self.assertEqual(self.developer.avatar.url, saved_photo_url)
+
+    def test_developer_can_upload_profile_photo_and_company_sees_it(self):
+        self.login_as(self.dev_user)
+        image = SimpleUploadedFile("dev.png", self.make_image(), content_type="image/png")
+        with tempfile.TemporaryDirectory() as media_root, override_settings(MEDIA_ROOT=media_root):
+            response = self.client.post(reverse("account_profile"), {
+                "public_name": "Dev Público",
+                "bio": "Perfil profissional",
+                "skills": "",
+                "technologies": "",
+                "portfolio_url": "",
+                "github_url": "",
+                "linkedin_url": "",
+                "website_url": "",
+                "avatar": image,
+            }, follow=True)
+            self.assertEqual(response.status_code, 200)
+            self.developer.refresh_from_db()
+            self.assertTrue(self.developer.avatar.name.startswith("profile_photos/"))
+            self.assertContains(response, self.developer.avatar.url)
+
+            Participation.objects.create(challenge=self.challenge, developer=self.developer)
+            self.login_as(self.company_user)
+            response = self.client.get(reverse("company_challenge_manage", args=[self.challenge.pk]))
+            self.assertContains(response, self.developer.avatar.url)
+
+    def test_company_photo_appears_on_public_challenges_and_in_conversations(self):
+        self.login_as(self.company_user)
+        company_image = SimpleUploadedFile("company.png", self.make_image(), content_type="image/png")
+        developer_image = SimpleUploadedFile("developer.png", self.make_image(), content_type="image/png")
+        with tempfile.TemporaryDirectory() as media_root, override_settings(MEDIA_ROOT=media_root):
+            response = self.client.post(reverse("account_profile"), {
+                "public_name": "Arena Tech",
+                "avatar": company_image,
+            })
+            self.assertEqual(response.status_code, 302)
+            self.company.refresh_from_db()
+            company_photo_url = self.company.avatar.url
+            self.developer.avatar.save("developer.png", developer_image, save=True)
+
+            self.login_as(self.dev_user)
+            for url in (
+                reverse("challenge_list"),
+                reverse("challenge_detail", args=[self.challenge.pk]),
+            ):
+                with self.subTest(url=url):
+                    self.assertContains(self.client.get(url), company_photo_url)
+
+            conversation = Conversation.objects.create(
+                company=self.company, developer=self.developer, challenge=self.challenge,
+            )
+            self.assertContains(self.client.get(reverse("conversation_list")), company_photo_url)
+            self.assertContains(
+                self.client.get(reverse("conversation_detail", args=[conversation.pk])),
+                company_photo_url,
+            )
+
+            self.login_as(self.company_user)
+            self.assertContains(
+                self.client.get(reverse("conversation_detail", args=[conversation.pk])),
+                self.developer.avatar.url,
+            )
+
+    def test_profile_rejects_invalid_or_oversized_photos(self):
+        self.login_as(self.dev_user)
+        invalid_image = SimpleUploadedFile("fake.jpg", b"not an image", content_type="image/jpeg")
+        with self.subTest(reason="invalid image"):
+            response = self.client.post(reverse("account_profile"), {
+                "public_name": "Dev Público",
+                "avatar": invalid_image,
+            })
+            self.assertEqual(response.status_code, 200)
+            self.assertIn("avatar", response.context["form"].errors)
+
+        oversized_format = SimpleUploadedFile(
+            "large.bmp", self.make_image(format="BMP", size=(32, 32)),
+            content_type="image/bmp",
+        )
+        with self.subTest(reason="unsupported format"):
+            response = self.client.post(reverse("account_profile"), {
+                "public_name": "Dev Público",
+                "avatar": oversized_format,
+            })
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, "JPG, PNG ou WebP")
+
+        large_image = BytesIO()
+        Image.frombytes(
+            "RGB", (1350, 1350), os.urandom(1350 * 1350 * 3)
+        ).save(large_image, format="PNG")
+        self.assertGreater(len(large_image.getvalue()), MAX_AVATAR_SIZE)
+        oversized_file = SimpleUploadedFile(
+            "large.png", large_image.getvalue(), content_type="image/png",
+        )
+        with self.subTest(reason="file size"):
+            response = self.client.post(reverse("account_profile"), {
+                "public_name": "Dev Público",
+                "avatar": oversized_file,
+            })
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, "no máximo 5 MB")
+
+        oversized_dimensions = SimpleUploadedFile(
+            "dimensions.png", self.make_image(size=(MAX_AVATAR_DIMENSION + 1, 1)),
+            content_type="image/png",
+        )
+        with self.subTest(reason="image dimensions"):
+            response = self.client.post(reverse("account_profile"), {
+                "public_name": "Dev Público",
+                "avatar": oversized_dimensions,
+            })
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, "4096 × 4096")
+
+    def test_replacing_and_removing_photo_deletes_previous_upload(self):
+        self.login_as(self.dev_user)
+        with tempfile.TemporaryDirectory() as media_root, override_settings(MEDIA_ROOT=media_root):
+            first_image = SimpleUploadedFile("first.png", self.make_image(), content_type="image/png")
+            self.client.post(reverse("account_profile"), {
+                "public_name": "Dev Público",
+                "avatar": first_image,
+            })
+            self.developer.refresh_from_db()
+            first_name = self.developer.avatar.name
+            self.assertTrue(self.developer.avatar.storage.exists(first_name))
+
+            second_image = SimpleUploadedFile("second.png", self.make_image(), content_type="image/png")
+            with self.captureOnCommitCallbacks(execute=True) as callbacks:
+                response = self.client.post(reverse("account_profile"), {
+                    "public_name": "Dev Público",
+                    "avatar": second_image,
+                })
+            self.assertEqual(response.status_code, 302)
+            self.developer.refresh_from_db()
+            second_name = self.developer.avatar.name
+            self.assertNotEqual(first_name, second_name)
+            self.assertEqual(len(callbacks), 1)
+            self.assertFalse(self.developer.avatar.storage.exists(first_name))
+
+            with self.captureOnCommitCallbacks(execute=True):
+                response = self.client.post(reverse("account_profile"), {
+                    "public_name": "Dev Público",
+                    "remove_avatar": "on",
+                })
+            self.assertEqual(response.status_code, 302)
+            self.developer.refresh_from_db()
+            self.assertFalse(self.developer.avatar)
+            self.assertFalse(self.developer.avatar.storage.exists(second_name))
 
     def test_challenge_company_can_see_candidate_profile_but_not_private_data(self):
         self.developer.skills = "APIs, testes"

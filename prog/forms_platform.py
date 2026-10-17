@@ -1,7 +1,14 @@
 from django import forms
+from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from .models import Challenge, Message, Submission
 from .models_accounts import Profile
+
+
+MAX_AVATAR_SIZE = 5 * 1024 * 1024
+MAX_AVATAR_DIMENSION = 4096
+ALLOWED_AVATAR_FORMATS = {"JPEG", "PNG", "WEBP"}
 
 
 class StyledModelForm(forms.ModelForm):
@@ -12,6 +19,10 @@ class StyledModelForm(forms.ModelForm):
 
 
 class ProfileForm(StyledModelForm):
+    remove_avatar = forms.BooleanField(
+        label="Remover foto atual",
+        required=False,
+    )
     public_name = forms.CharField(
         label="Nome público", max_length=150,
         help_text="Este nome será exibido às empresas nos desafios em que você participar.",
@@ -24,7 +35,7 @@ class ProfileForm(StyledModelForm):
     class Meta:
         model = Profile
         fields = [
-            "bio", "skills", "technologies", "portfolio_url",
+            "avatar", "bio", "skills", "technologies", "portfolio_url",
             "github_url", "linkedin_url", "website_url",
         ]
         labels = {
@@ -42,12 +53,19 @@ class ProfileForm(StyledModelForm):
             "technologies": "Separe linguagens e tecnologias por vírgula.",
         }
         widgets = {
+            "avatar": forms.FileInput(attrs={
+                "accept": "image/jpeg,image/png,image/webp",
+            }),
             "skills": forms.TextInput(attrs={"maxlength": "500"}),
             "technologies": forms.TextInput(attrs={"maxlength": "500"}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._original_avatar_name = self.instance.avatar.name
+        self._original_avatar_storage = self.instance.avatar.storage
+        self.fields["avatar"].label = "Foto do perfil"
+        self.fields["avatar"].help_text = "JPG, PNG ou WebP; até 5 MB e 4096 × 4096 px."
         is_company = self.instance and self.instance.tipo == Profile.COMPANY
         if is_company:
             self.fields["public_name"].help_text = "Este nome identifica sua empresa nos desafios e nas conversas."
@@ -64,18 +82,46 @@ class ProfileForm(StyledModelForm):
             self.fields["bio"].label = "Sobre você"
             self.fields["bio"].help_text = "Conte brevemente sua experiência ou o tipo de trabalho que procura."
         self.order_fields([
-            "public_name", "bio", "skills", "technologies", "portfolio_url",
+            "avatar", "remove_avatar", "public_name", "bio", "skills", "technologies", "portfolio_url",
             "github_url", "linkedin_url", "website_url",
         ])
         if self.instance and self.instance.pk:
             self.fields["public_name"].initial = self.instance.public_name
 
+    def clean_avatar(self):
+        avatar = self.cleaned_data.get("avatar")
+        if not avatar or not self.files.get("avatar"):
+            return avatar
+        if avatar.size > MAX_AVATAR_SIZE:
+            raise ValidationError("A foto deve ter no máximo 5 MB.")
+        image = getattr(avatar, "image", None)
+        image_format = getattr(image, "format", None)
+        if image_format not in ALLOWED_AVATAR_FORMATS:
+            raise ValidationError("Use uma imagem JPG, PNG ou WebP válida.")
+        if image.width > MAX_AVATAR_DIMENSION or image.height > MAX_AVATAR_DIMENSION:
+            raise ValidationError("A foto deve ter no máximo 4096 × 4096 pixels.")
+        return avatar
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get("remove_avatar") and self.files.get("avatar"):
+            self.add_error("remove_avatar", "Escolha uma nova foto ou marque a remoção, não os dois.")
+        return cleaned_data
+
     def save(self, commit=True):
         profile = super().save(commit=False)
+        if self.cleaned_data.get("remove_avatar"):
+            profile.avatar = ""
         profile.user.first_name = self.cleaned_data["public_name"]
         if commit:
             profile.save()
             profile.user.save(update_fields=["first_name"])
+            if self._original_avatar_name and (
+                self.files.get("avatar") or self.cleaned_data.get("remove_avatar")
+            ):
+                transaction.on_commit(
+                    lambda: self._original_avatar_storage.delete(self._original_avatar_name)
+                )
         return profile
 
 
