@@ -627,6 +627,12 @@ class NavigationTests(PlatformTestCase):
     def test_homepage_uses_lightweight_visual_and_has_paths_for_both_audiences(self):
         response = self.client.get(reverse("home"))
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "<title>DevCodeArena — Hackathons e oportunidades para talentos dev | Prog.</title>")
+        self.assertContains(response, 'aria-label="DevCodeArena, plataforma da Prog."')
+        self.assertContains(response, 'class="brand__mascot-face"')
+        self.assertContains(response, 'id="cyber-shell"')
+        self.assertContains(response, '<h1 class="hero__title"><span class="hero__title-highlight">DevCode</span>Arena</h1>')
+        self.assertContains(response, '<p class="hero__headline">Hackathons que conectam talentos a oportunidades.</p>')
         self.assertContains(response, "Criar perfil DEV")
         self.assertContains(response, "Criar perfil de empresa")
         self.assertContains(response, "hero-visual")

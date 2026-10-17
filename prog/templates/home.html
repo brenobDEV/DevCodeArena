@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}DevCodeArena — Seu código fala por você{% endblock %}
+{% block title %}DevCodeArena — Hackathons e oportunidades para talentos dev | Prog.{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/home.css' %}?v=22">
+<link rel="stylesheet" href="{% static 'css/home.css' %}?v=27">
 <script type="importmap">
 { "imports": {
   "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
@@ -16,9 +16,13 @@
 <section class="hero">
   <div class="container hero__grid">
     <div class="hero__copy">
-      <p class="hero__tag"><span aria-hidden="true">{}</span> Desafios reais para revelar talentos em tecnologia.</p>
-      <h1 class="hero__title">Seu código abre novas oportunidades.</h1>
-      <p class="hero__lead">Resolva desafios publicados por empresas, demonstre suas habilidades e conecte-se a novas oportunidades no mercado de tecnologia.</p>
+      <p class="hero__tag" aria-label="DevCodeArena, plataforma da Prog.">
+        <span class="hero__tag-icon" aria-hidden="true">{}</span>
+        <span class="hero__tag-brand"><strong>DevCodeArena</strong><span>plataforma da</span><strong>Prog.</strong></span>
+      </p>
+      <h1 class="hero__title"><span class="hero__title-highlight">DevCode</span>Arena</h1>
+      <p class="hero__headline">Hackathons que conectam talentos a oportunidades.</p>
+      <p class="hero__lead">Resolva desafios reais, mostre seu talento na prática e construa conexões profissionais. Empresas acompanham suas entregas e podem convidar você para conversar.</p>
       {% if not account_type %}
       <div class="hero__actions">
         <a class="btn-dca btn-dca--primary" href="{{ nav.signup_dev }}">Sou DEV <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
