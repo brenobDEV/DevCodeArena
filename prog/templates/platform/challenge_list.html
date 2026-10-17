@@ -2,7 +2,16 @@
 {% block title %}Explorar desafios — DevCodeArena{% endblock %}
 {% block content %}
 <section class="platform-page"><div class="container">
-  <header class="platform-hero platform-hero--compact"><div><p class="eyebrow">CATÁLOGO DA ARENA</p><h1>Encontre seu próximo desafio.</h1><p>Filtre por ciclo, tecnologia e nível. Sua próxima oportunidade pode começar em uma submissão.</p></div></header>
+  <header class="platform-hero platform-hero--compact challenge-hero challenge-hero--catalog">
+    <div class="challenge-hero__copy">
+      <p class="eyebrow">CENTRAL DE MISSÕES · CATÁLOGO DA ARENA</p>
+      <h1>Encontre um problema. Construa a solução.</h1>
+      <p>Explore desafios de empresas, escolha uma tecnologia e transforme conhecimento em uma entrega que demonstra suas habilidades.</p>
+      <a class="text-link" href="{% url 'challenge_periods' %}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Voltar aos ciclos</a>
+    </div>
+    {% include "platform/_challenge_hero_visual.html" %}
+  </header>
+  <div class="challenge-catalog-intro"><div><p class="eyebrow">PERSONALIZE SUA BUSCA</p><h2>Encontre o desafio certo para você</h2></div><p>Combine ciclo, linguagem, tecnologia e dificuldade. Você pode ajustar os filtros a qualquer momento.</p></div>
   <form class="filter-panel" method="get">
     <div class="filter-field filter-field--search"><label for="id_q">Buscar</label><input id="id_q" type="search" name="q" value="{{ filters.q }}" placeholder="Nome ou descrição do desafio"></div>
     <div class="filter-field"><label for="id_period">Ciclo</label><select id="id_period" name="period"><option value="">Todos</option>{% for value,label in period_choices %}<option value="{{ value }}" {% if filters.period == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>

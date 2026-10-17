@@ -9,6 +9,7 @@ from django.utils import timezone
 from .models import Challenge, Conversation, Message, Participation, Submission
 from .models_accounts import Profile
 from .forms_platform import ChallengeForm
+from .forms_accounts import valid_cnpj
 
 User = get_user_model()
 
@@ -44,10 +45,58 @@ class PlatformTestCase(TestCase):
 
 
 class ChallengeFlowTests(PlatformTestCase):
-    def test_public_list_renders_published_challenge(self):
+    def test_anonymous_visitor_is_sent_to_login_from_challenge_pages(self):
+        for name, args in (("challenge_periods", ()), ("challenge_list", ()), ("challenge_detail", (self.challenge.pk,))):
+            with self.subTest(page=name):
+                url = reverse(name, args=args)
+                self.assertRedirects(self.client.get(url), f"{reverse('login')}?next={url}")
+
+    def test_list_renders_published_challenge_for_logged_user(self):
+        self.login_as(self.dev_user)
         response = self.client.get(reverse("challenge_list"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "API Challenge")
+
+    def test_company_dashboard_aggregates_metrics_correctly(self):
+        first_participation = Participation.objects.create(
+            challenge=self.challenge,
+            developer=self.developer,
+            status=Participation.STATUS_SELECTED,
+        )
+        second_participation = Participation.objects.create(
+            challenge=self.challenge,
+            developer=self.other_developer,
+        )
+        for participation in (first_participation, second_participation):
+            Submission.objects.create(
+                participation=participation,
+                repository_url="https://github.com/example/project",
+            )
+        Challenge.objects.create(
+            company=self.company,
+            title="Desafio encerrado",
+            description="Desafio concluído.",
+            deadline=timezone.now() - timedelta(days=1),
+            status=Challenge.STATUS_CLOSED,
+            is_active=False,
+        )
+        Challenge.objects.create(
+            company=self.company,
+            title="Rascunho",
+            description="Desafio não publicado.",
+            deadline=timezone.now() + timedelta(days=1),
+        )
+        self.login_as(self.company_user)
+
+        response = self.client.get(reverse("company_dashboard"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["total_challenges"], 3)
+        self.assertEqual(response.context["active_challenges"], 1)
+        self.assertEqual(response.context["closed_challenges"], 1)
+        self.assertEqual(response.context["participation_count"], 2)
+        self.assertEqual(response.context["submission_count"], 2)
+        self.assertEqual(response.context["selected_count"], 1)
 
     def test_developer_can_join_once(self):
         self.login_as(self.dev_user)
@@ -74,6 +123,149 @@ class ChallengeFlowTests(PlatformTestCase):
         self.login_as(self.company_user)
         response = self.client.get(reverse("company_challenge_edit", args=[challenge.pk]))
         self.assertEqual(response.status_code, 404)
+
+    def test_protected_page_redirects_to_account_type_login_selector(self):
+        response = self.client.get(reverse("company_dashboard"))
+
+        self.assertRedirects(
+            response,
+            f"{reverse('login')}?next={reverse('company_dashboard')}",
+        )
+
+
+class ProfileTests(PlatformTestCase):
+    def test_developer_can_update_professional_profile_without_exposing_private_data(self):
+        self.login_as(self.dev_user)
+        response = self.client.post(reverse("account_profile"), {
+            "public_name": "Dev Atualizado",
+            "bio": "Desenvolvedor focado em APIs.",
+            "skills": "APIs, testes automatizados",
+            "technologies": "Python, Django",
+            "portfolio_url": "https://example.test/portfolio",
+            "github_url": "https://github.com/dev",
+            "linkedin_url": "https://linkedin.com/in/dev",
+            "website_url": "",
+        }, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Seu perfil foi atualizado.")
+        self.developer.refresh_from_db()
+        self.dev_user.refresh_from_db()
+        self.assertEqual(self.developer.bio, "Desenvolvedor focado em APIs.")
+        self.assertEqual(self.developer.skills, "APIs, testes automatizados")
+        self.assertEqual(self.developer.technologies, "Python, Django")
+        self.assertEqual(self.dev_user.first_name, "Dev Atualizado")
+        self.assertNotContains(response, self.developer.cpf)
+
+    def test_invalid_profile_url_is_rejected(self):
+        self.login_as(self.dev_user)
+        response = self.client.post(reverse("account_profile"), {
+            "public_name": "Dev Público",
+            "portfolio_url": "not-a-url",
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Informe uma URL válida")
+        self.developer.refresh_from_db()
+        self.assertEqual(self.developer.portfolio_url, "")
+
+    def test_challenge_company_can_see_candidate_profile_but_not_private_data(self):
+        self.developer.skills = "APIs, testes"
+        self.developer.technologies = "Python, Django"
+        self.developer.github_url = "https://github.com/dev"
+        self.developer.save()
+        Participation.objects.create(challenge=self.challenge, developer=self.developer)
+        self.login_as(self.company_user)
+        response = self.client.get(reverse("company_challenge_manage", args=[self.challenge.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "APIs, testes")
+        self.assertContains(response, "Python, Django")
+        self.assertContains(response, "https://github.com/dev")
+        self.assertNotContains(response, self.developer.cpf)
+        self.assertNotContains(response, self.dev_user.email)
+
+
+class SignupIdentifierTests(TestCase):
+    ADDRESS = {
+        "cep": "01310-100", "logradouro": "Avenida Paulista", "numero": "1000",
+        "complemento": "Sala 2", "bairro": "Bela Vista", "cidade": "São Paulo", "uf": "sp",
+    }
+
+    def signup_data(self, identifier_name, identifier_value):
+        data = {
+            "nome": "Conta de Teste",
+            identifier_name: identifier_value,
+            "email": f"{identifier_name}@example.test",
+            "senha": "Complex-Test-Password-984!",
+            "senha2": "Complex-Test-Password-984!",
+        }
+        if identifier_name == "cnpj":  # empresa também informa o endereço
+            data.update(self.ADDRESS)
+        return data
+
+    def test_company_signup_saves_normalized_address(self):
+        self.client.post(reverse("signup_company"), self.signup_data("cnpj", "04.252.011/0001-10"))
+        profile = Profile.objects.get(user__email="cnpj@example.test")
+        self.assertEqual((profile.cep, profile.uf, profile.cidade), ("01310100", "SP", "São Paulo"))
+        self.assertEqual(profile.logradouro, "Avenida Paulista")
+
+    def test_company_signup_requires_address(self):
+        data = self.signup_data("cnpj", "04.252.011/0001-10")
+        for field in ("cep", "logradouro", "numero", "bairro", "cidade", "uf"):
+            data.pop(field)
+        response = self.client.post(reverse("signup_company"), data)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Por favor, informe o CEP da empresa.")
+        self.assertFalse(Profile.objects.filter(user__email="cnpj@example.test").exists())
+
+    def test_company_signup_rejects_invalid_cep_and_uf(self):
+        data = self.signup_data("cnpj", "04.252.011/0001-10") | {"cep": "123", "uf": "XX"}
+        response = self.client.post(reverse("signup_company"), data)
+        self.assertContains(response, "Informe um CEP válido (8 números).")
+        self.assertContains(response, "Informe uma UF válida (ex.: SP).")
+
+    def test_developer_signup_does_not_ask_for_address(self):
+        response = self.client.get(reverse("signup_dev"))
+        self.assertNotContains(response, 'name="cep"')
+
+    def test_company_signup_requires_and_saves_cnpj_instead_of_cpf(self):
+        response = self.client.post(
+            reverse("signup_company"),
+            self.signup_data("cnpj", "04.252.011/0001-10"),
+        )
+        self.assertRedirects(response, reverse("home"))
+        profile = Profile.objects.get(user__email="cnpj@example.test")
+        self.assertEqual(profile.tipo, Profile.COMPANY)
+        self.assertEqual(profile.cnpj, "04252011000110")
+        self.assertIsNone(profile.cpf)
+
+    def test_company_signup_rejects_invalid_or_duplicate_cnpj(self):
+        self.assertFalse(valid_cnpj("00000000000000"))
+        data = self.signup_data("cnpj", "04.252.011/0001-10")
+        self.assertRedirects(self.client.post(reverse("signup_company"), data), reverse("home"))
+        self.client.logout()
+        duplicate = self.signup_data("cnpj", "04252011000110")
+        response = self.client.post(reverse("signup_company"), duplicate)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Este CNPJ já está cadastrado.")
+        self.assertEqual(Profile.objects.filter(cnpj="04252011000110").count(), 1)
+
+    def test_developer_signup_still_requires_and_saves_cpf(self):
+        response = self.client.post(
+            reverse("signup_dev"),
+            self.signup_data("cpf", "529.982.247-25"),
+        )
+        self.assertRedirects(response, reverse("home"))
+        profile = Profile.objects.get(user__email="cpf@example.test")
+        self.assertEqual(profile.tipo, Profile.DEVELOPER)
+        self.assertEqual(profile.cpf, "52998224725")
+        self.assertIsNone(profile.cnpj)
+
+    def test_signup_pages_render_identifier_for_selected_account_type(self):
+        company_response = self.client.get(reverse("signup_company"))
+        self.assertContains(company_response, 'name="cnpj"')
+        self.assertNotContains(company_response, 'name="cpf"')
+        developer_response = self.client.get(reverse("signup_dev"))
+        self.assertContains(developer_response, 'name="cpf"')
+        self.assertNotContains(developer_response, 'name="cnpj"')
 
 
 class ConversationSecurityTests(PlatformTestCase):
@@ -175,6 +367,7 @@ class ChallengeManagementTests(PlatformTestCase):
             status=Challenge.STATUS_PUBLISHED,
             is_active=True,
         )
+        self.login_as(self.dev_user)
         response = self.client.get(reverse("challenge_list"), {"language": "Python"})
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "API Challenge")
@@ -203,6 +396,57 @@ class ChallengeFormValidationTests(TestCase):
         self.assertIn("deadline", form.errors)
 
 class NavigationTests(PlatformTestCase):
+    def test_challenge_pages_have_accessible_lightweight_3d_visual(self):
+        self.login_as(self.dev_user)
+        for url_name in ("challenge_periods", "challenge_list"):
+            with self.subTest(page=url_name):
+                response = self.client.get(reverse(url_name))
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, 'role="img"')
+                self.assertContains(response, "challenge-visual__core")
+                self.assertContains(response, "challenge-visual__code")
+                self.assertNotContains(response, "three.module.js")
+                self.assertNotContains(response, "models/hand.glb")
+
+    def test_homepage_uses_lightweight_visual_and_has_paths_for_both_audiences(self):
+        response = self.client.get(reverse("home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Criar perfil DEV")
+        self.assertContains(response, "Criar perfil de empresa")
+        self.assertContains(response, "hero-visual")
+        self.assertContains(response, "arena-podium")
+        self.assertContains(response, "TALENTO EM DESTAQUE")
+        self.assertContains(response, "data-tilt")
+        # mão 3D abaixo da imagem da arena e coliseu na seção "uma arena, dois caminhos"
+        self.assertContains(response, 'id="hero-scene"')
+        self.assertContains(response, "models/hand.glb")
+        self.assertContains(response, 'id="arena-scene"')
+        self.assertContains(response, "three.module.js")
+        self.assertContains(response, "home_motion.js")
+
+    def test_login_page_offers_both_account_types(self):
+        response = self.client.get(reverse("login"), {"next": "/desafios/"})
+        self.assertContains(response, "auth--choose")
+        self.assertContains(response, reverse("login_dev") + "?next=/desafios/")
+        self.assertContains(response, reverse("login_company") + "?next=/desafios/")
+        self.assertContains(response, reverse("signup"))
+
+    def test_homepage_next_step_never_sends_visitor_to_logged_area(self):
+        response = self.client.get(reverse("home"))
+        html = response.content.decode()
+        block = html[html.index('class="next-step"'):html.index("</section>", html.index('class="next-step"'))]
+        self.assertIn(reverse("signup"), block)
+        self.assertIn(reverse("login"), block)
+        self.assertNotIn(reverse("challenge_periods"), block)
+        self.assertNotIn(reverse("leaderboard"), html[html.index("site-footer"):])
+
+    def test_homepage_next_step_for_logged_developer_goes_to_challenges(self):
+        self.login_as(self.dev_user)
+        html = self.client.get(reverse("home")).content.decode()
+        block = html[html.index('class="next-step"'):html.index("</section>", html.index('class="next-step"'))]
+        self.assertIn(reverse("challenge_periods"), block)
+        self.assertNotIn(reverse("signup"), block)
+
     def test_authenticated_developer_sees_header_navigation(self):
         self.login_as(self.dev_user)
         response = self.client.get(reverse("home"))

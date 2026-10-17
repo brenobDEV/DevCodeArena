@@ -28,6 +28,13 @@ class Profile(models.Model):
     cidade = models.CharField(max_length=80, blank=True)
     uf = models.CharField(max_length=2, blank=True)
 
+    bio = models.TextField(blank=True)
+    skills = models.CharField(max_length=500, blank=True)
+    technologies = models.CharField(max_length=500, blank=True)
+    portfolio_url = models.URLField(max_length=500, blank=True)
+    github_url = models.URLField(max_length=500, blank=True)
+    linkedin_url = models.URLField(max_length=500, blank=True)
+    website_url = models.URLField(max_length=500, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):

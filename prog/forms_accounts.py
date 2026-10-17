@@ -161,11 +161,12 @@ class SignupForm(StyledForm):
         return data
 
     @transaction.atomic
-    def save(self):
+    def save(self, kind=None):
+        kind = kind or self.kind
         d = self.cleaned_data
         user = User.objects.create_user(username=d["email"], email=d["email"], password=d["senha"], first_name=d["nome"][:150])
         address = {name: d.get(name, "").strip() for name in ADDRESS_FIELDS}
-        Profile.objects.create(user=user, tipo=self.kind, cpf=d.get("cpf"), cnpj=d.get("cnpj"), **address)
+        Profile.objects.create(user=user, tipo=kind, cpf=d.get("cpf"), cnpj=d.get("cnpj"), **address)
         return user
 
 

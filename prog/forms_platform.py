@@ -1,6 +1,7 @@
 from django import forms
 
 from .models import Challenge, Message, Submission
+from .models_accounts import Profile
 
 
 class StyledModelForm(forms.ModelForm):
@@ -8,6 +9,59 @@ class StyledModelForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.widget.attrs.setdefault("class", "field__input")
+
+
+class ProfileForm(StyledModelForm):
+    public_name = forms.CharField(
+        label="Nome público", max_length=150,
+        help_text="Este nome será exibido às empresas nos desafios em que você participar.",
+    )
+    bio = forms.CharField(
+        label="Sobre você", required=False, max_length=2000,
+        widget=forms.Textarea(attrs={"rows": 4}),
+    )
+
+    class Meta:
+        model = Profile
+        fields = [
+            "bio", "skills", "technologies", "portfolio_url",
+            "github_url", "linkedin_url", "website_url",
+        ]
+        labels = {
+            "bio": "Sobre você",
+            "skills": "Competências",
+            "technologies": "Linguagens e tecnologias",
+            "portfolio_url": "Portfólio",
+            "github_url": "GitHub",
+            "linkedin_url": "LinkedIn",
+            "website_url": "Site",
+        }
+        help_texts = {
+            "bio": "Conte brevemente sua experiência ou o tipo de trabalho que procura.",
+            "skills": "Separe as competências por vírgula, por exemplo: APIs, testes, UX.",
+            "technologies": "Separe linguagens e tecnologias por vírgula.",
+        }
+        widgets = {
+            "skills": forms.TextInput(attrs={"maxlength": "500"}),
+            "technologies": forms.TextInput(attrs={"maxlength": "500"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.order_fields([
+            "public_name", "bio", "skills", "technologies", "portfolio_url",
+            "github_url", "linkedin_url", "website_url",
+        ])
+        if self.instance and self.instance.pk:
+            self.fields["public_name"].initial = self.instance.public_name
+
+    def save(self, commit=True):
+        profile = super().save(commit=False)
+        profile.user.first_name = self.cleaned_data["public_name"]
+        if commit:
+            profile.save()
+            profile.user.save(update_fields=["first_name"])
+        return profile
 
 
 class ChallengeForm(StyledModelForm):

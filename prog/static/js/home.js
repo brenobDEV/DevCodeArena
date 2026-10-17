@@ -71,6 +71,7 @@ function createStage(el, { fov, pos, look, exposure = 1.05 }) {
     envRT.dispose(); pmrem.dispose(); renderer.dispose();
   });
   resize();
+  el.dataset.ready = "1";
   stage.draw = draw;
   return stage;
 }
@@ -235,7 +236,7 @@ function fitHand(model, orient, root, wrist, rotDeg, scale) {
 function initHeroScene() {
   const el = document.getElementById("hero-scene");
   if (!el) return;
-  const stage = createStage(el, { fov: 38, pos: new THREE.Vector3(0.6, 4.6, 9.2), look: new THREE.Vector3(0, 0.65, 0.7) });
+  const stage = createStage(el, { fov: 38, pos: new THREE.Vector3(0.6, 4.6, 9.2), look: new THREE.Vector3(0, 0.4, 0.7) });   // mira um pouco mais baixa: sobra folga embaixo e os dedos não encostam na borda do canvas
   if (!stage) return;
   const { scene } = stage;
 
@@ -249,7 +250,9 @@ function initHeroScene() {
   const rim = new THREE.DirectionalLight(0x00e5ff, 2.6); rim.position.set(-6, 3, -4); scene.add(rim);
   const fill = new THREE.PointLight(0x2563eb, 30, 14, 2); fill.position.set(0, -1, 4); scene.add(fill);
 
-  const symbol = buildCodeSymbol(); symbol.scale.setScalar(cfg.ss); scene.add(symbol);
+  const symbol = buildCodeSymbol(); symbol.scale.setScalar(cfg.ss);   // o </> 3D não é mais adicionado à cena: quem paira sobre a mão é a arena (CSS), sincronizada pelo estado
+  const hoverCol = el.closest(".hero-column");
+  if (hoverCol && !reduceMotion && window.gsap) hoverCol.classList.add("is-synced");
   const root = new THREE.Group(), wrist = new THREE.Group(), orient = new THREE.Group();
   root.add(wrist); wrist.add(orient); scene.add(root);
   const state = { lift: 0, lift2: 0, spin: 0, reveal: 1, rise: 1, fx: 0, scan: 1, life: 0, curl: [1, 1, 1, 1, 1] };   // lift: mão; lift2: símbolo (atrasado = o impulso); curl: 1 = dedo fechado, 0 = aberto; life: intensidade do movimento ocioso dos dedos
@@ -379,6 +382,7 @@ function initHeroScene() {
     }
   };
 
+  let symAngle = 0;
   stage.onFrame = (t, dt) => {
     handUniforms.uTime.value = t;
     if (themeMix !== themeTarget) {   // transição do tema (~0,6 s)
@@ -398,8 +402,14 @@ function initHeroScene() {
     const r = state.rise;
     symbol.position.set(cfg.sp[0], cfg.sp[1] + state.lift2 * 0.45 + Math.sin(t * 0.8) * 0.03 - (1 - r) * 1.1, cfg.sp[2]);
     symbol.scale.setScalar(cfg.ss * (0.4 + 0.6 * r));
-    symbol.rotation.set(0.16 + Math.sin(t * 0.5) * 0.05, t * 0.42 * state.spin, -0.05);
+    symAngle += dt * 0.6 * state.spin;   // integra o ângulo: o </> acelera sem saltos e gira sem parar
+    symbol.rotation.set(0.16 + Math.sin(t * 0.5) * 0.05, symAngle, -0.05);
     symbol.children.forEach((m, i) => { m.position.x = m.userData.x * (0.35 + 0.65 * r); m.rotation.y = (1 - Math.min(r, 1)) * (i - 1) * 1.4; });   // peças se encaixam
+    if (hoverCol) {   // a arena paira sobre a mão e surge exatamente como o </> surgia
+      const st = hoverCol.style, q = (v) => (Math.round(v * 1000) / 1000).toString();
+      st.setProperty("--hv-reveal", q(rv)); st.setProperty("--hv-rise", q(r));
+      st.setProperty("--hv-bob", q(state.lift2 + Math.sin(t * 0.8) * 0.07));
+    }
     const f = state.fx;
     rings.forEach((m, i) => { const q = THREE.MathUtils.clamp(f * 1.4 - i * 0.28, 0, 1); m.scale.setScalar(0.3 + q * 2.1); m.material.opacity = q > 0 ? (1 - q) * 0.9 : 0; });
     sparks.material.opacity = Math.sin(Math.PI * Math.min(f, 1)) * 0.9;
