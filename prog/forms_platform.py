@@ -48,6 +48,21 @@ class ProfileForm(StyledModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        is_company = self.instance and self.instance.tipo == Profile.COMPANY
+        if is_company:
+            self.fields["public_name"].help_text = "Este nome identifica sua empresa nos desafios e nas conversas."
+            self.fields["bio"].label = "Sobre a empresa"
+            self.fields["bio"].help_text = "Apresente brevemente sua empresa, produto ou equipe."
+            self.fields["skills"].label = "Áreas de atuação"
+            self.fields["skills"].help_text = "Separe por vírgulas, por exemplo: fintech, educação, saúde."
+            self.fields["technologies"].label = "Tecnologias da equipe"
+            self.fields["technologies"].help_text = "Quais linguagens e ferramentas sua equipe usa?"
+            self.fields["portfolio_url"].label = "Portfólio ou produto"
+            self.fields["website_url"].label = "Site da empresa"
+        else:
+            self.fields["public_name"].help_text = "Este nome será exibido às empresas nos desafios em que você participar."
+            self.fields["bio"].label = "Sobre você"
+            self.fields["bio"].help_text = "Conte brevemente sua experiência ou o tipo de trabalho que procura."
         self.order_fields([
             "public_name", "bio", "skills", "technologies", "portfolio_url",
             "github_url", "linkedin_url", "website_url",

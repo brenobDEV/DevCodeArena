@@ -1,12 +1,157 @@
 {% extends "base_authenticated.html" %}
-{% block title %}Editar perfil — DevCodeArena{% endblock %}
+{% block title %}Personalizar perfil — DevCodeArena{% endblock %}
 {% block content %}
-<section class="platform-page"><div class="container profile-layout"><header class="platform-hero platform-hero--compact"><div><p class="eyebrow">SEU PERFIL PROFISSIONAL</p><h1>Apresente seu trabalho.</h1><p>Complete seus dados para que empresas conheçam melhor suas competências e seu portfólio durante a análise dos desafios.</p></div></header>
-<div class="content-panel profile-card"><div class="profile-avatar"><i class="bi {% if profile.tipo == 'company' %}bi-building{% else %}bi-person{% endif %}" aria-hidden="true"></i></div><div><span class="pill">{{ profile.get_tipo_display }}</span><h2>{{ profile.public_name }}</h2><p class="muted">Membro desde {{ profile.created_at|date:"d/m/Y" }}</p><p>Seu CPF não é exibido às empresas nem em seu perfil profissional.</p></div></div>
-<form method="post" class="content-panel platform-form profile-form">{% csrf_token %}
-  {% if form.non_field_errors %}<div class="form-field form-field--wide field-error">{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>{% endif %}
-  {% for field in form %}<div class="form-field {% if field.name == 'public_name' or field.name == 'bio' %}form-field--wide{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>{% endfor %}
-  <div class="form-actions"><button class="btn-dca btn-dca--primary" type="submit">Salvar perfil</button>{% if profile.tipo == "developer" %}<a class="btn-dca btn-dca--outline" href="{% url 'my_submissions' %}">Ver minhas soluções</a>{% else %}<a class="btn-dca btn-dca--outline" href="{% url 'company_dashboard' %}">Abrir painel</a>{% endif %}</div>
-</form>
-</div></section>
+<section class="platform-page profile-page">
+  <div class="container profile-layout">
+    <header class="profile-intro">
+      <div>
+        <p class="eyebrow"><i class="bi bi-person-gear" aria-hidden="true"></i> PERSONALIZAÇÃO DO PERFIL</p>
+        <h1>{% if profile.tipo == "company" %}Dê identidade à sua empresa.{% else %}Mostre o que você sabe fazer.{% endif %}</h1>
+        <p>{% if profile.tipo == "company" %}Conte aos desenvolvedores quem está por trás dos desafios e quais tecnologias movem sua equipe.{% else %}Apresente suas habilidades e projetos para que empresas conheçam seu trabalho além do código.{% endif %}</p>
+      </div>
+      <span class="profile-intro__badge"><i class="bi bi-shield-check" aria-hidden="true"></i> Perfil sob seu controle</span>
+    </header>
+
+    <div class="profile-editor">
+      <form method="post" class="content-panel platform-form profile-form">
+        {% csrf_token %}
+        <div class="profile-form__heading">
+          <span class="profile-form__icon"><i class="bi bi-sliders" aria-hidden="true"></i></span>
+          <div>
+            <h2>Seus dados públicos</h2>
+            <p>Edite as informações que ajudam outras pessoas a conhecer seu perfil.</p>
+          </div>
+        </div>
+
+        {% if form.non_field_errors %}
+          <div class="profile-errors form-field--wide" role="alert">
+            {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="profile-section form-field--wide">
+          <div class="profile-section__title">
+            <span>01</span>
+            <div>
+              <h3>Apresentação</h3>
+              <p>Como seu perfil aparece para a comunidade.</p>
+            </div>
+          </div>
+          <div class="profile-fields">
+            {% for field in form %}
+              {% if field.name == "public_name" or field.name == "bio" %}
+                <div class="form-field {% if field.name == 'public_name' or field.name == 'bio' %}form-field--wide{% endif %}">
+                  <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                  {% for error in field.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="profile-section form-field--wide">
+          <div class="profile-section__title">
+            <span>02</span>
+            <div>
+              <h3>{% if profile.tipo == "company" %}Especialidades da equipe{% else %}Competências e tecnologias{% endif %}</h3>
+              <p>{% if profile.tipo == "company" %}Ajude desenvolvedores a entender sua área de atuação.{% else %}Destaque seus pontos fortes e as ferramentas que usa.{% endif %}</p>
+            </div>
+          </div>
+          <div class="profile-fields">
+            {% for field in form %}
+              {% if field.name == "skills" or field.name == "technologies" %}
+                <div class="form-field">
+                  <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                  {% for error in field.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="profile-section form-field--wide">
+          <div class="profile-section__title">
+            <span>03</span>
+            <div>
+              <h3>Links e portfólio</h3>
+              <p>Compartilhe outros lugares onde as pessoas podem conhecer seu trabalho.</p>
+            </div>
+          </div>
+          <div class="profile-fields profile-fields--links">
+            {% for field in form %}
+              {% if field.name == "portfolio_url" or field.name == "github_url" or field.name == "linkedin_url" or field.name == "website_url" %}
+                <div class="form-field">
+                  <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                  {% for error in field.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-actions profile-form__actions">
+          <p><i class="bi bi-lock" aria-hidden="true"></i> Seus documentos e dados de acesso continuam privados.</p>
+          <div>
+            <a class="btn-dca btn-dca--outline" href="{% if profile.tipo == 'company' %}{% url 'company_dashboard' %}{% else %}{% url 'challenge_list' %}{% endif %}">Cancelar</a>
+            <button class="btn-dca btn-dca--primary" type="submit"><i class="bi bi-check2" aria-hidden="true"></i> Salvar perfil</button>
+          </div>
+        </div>
+      </form>
+
+      <aside class="profile-aside" aria-label="Resumo e privacidade do perfil">
+        <section class="profile-preview">
+          <div class="profile-preview__top">
+            <span>PRÉVIA DO PERFIL</span>
+            <i class="bi bi-eye" aria-hidden="true"></i>
+          </div>
+          <div class="profile-preview__avatar {% if profile.tipo == 'company' %}profile-preview__avatar--company{% endif %}">
+            <i class="bi {% if profile.tipo == 'company' %}bi-building{% else %}bi-code-slash{% endif %}" aria-hidden="true"></i>
+          </div>
+          <span class="profile-preview__kind">{{ profile.get_tipo_display }}</span>
+          <h2 data-profile-preview-name>{{ profile.public_name }}</h2>
+          <p class="profile-preview__bio" data-profile-preview-bio>{% if profile.bio %}{{ profile.bio|truncatechars:150 }}{% elif profile.tipo == "company" %}Sua apresentação aparecerá aqui para quem conhecer seus desafios.{% else %}Sua apresentação aparecerá aqui para as empresas.{% endif %}</p>
+          <div class="profile-preview__since"><i class="bi bi-calendar3" aria-hidden="true"></i> Na comunidade desde {{ profile.created_at|date:"M Y" }}</div>
+          <div class="profile-preview__note"><i class="bi bi-info-circle" aria-hidden="true"></i><span>Esta prévia mostra apenas informações profissionais. CPF, CNPJ e e-mail não aparecem aqui.</span></div>
+        </section>
+
+        <section class="profile-tip">
+          <span><i class="bi bi-lightbulb" aria-hidden="true"></i></span>
+          <div>
+            <h2>{% if profile.tipo == "company" %}Dica para empresas{% else %}Dica para DEV{% endif %}</h2>
+            <p>{% if profile.tipo == "company" %}Uma boa apresentação e links úteis ajudam talentos a entender os desafios que sua equipe publica.{% else %}Uma bio curta, competências específicas e links atualizados tornam seu perfil mais fácil de encontrar.{% endif %}</p>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<script>
+  (() => {
+    const nameInput = document.getElementById("id_public_name");
+    const bioInput = document.getElementById("id_bio");
+    const previewName = document.querySelector("[data-profile-preview-name]");
+    const previewBio = document.querySelector("[data-profile-preview-bio]");
+    if (nameInput && previewName) {
+      nameInput.addEventListener("input", () => {
+        previewName.textContent = nameInput.value.trim() || nameInput.defaultValue;
+      });
+    }
+    if (bioInput && previewBio) {
+      bioInput.addEventListener("input", () => {
+        const bio = bioInput.value.trim();
+        previewBio.textContent = bio
+          ? `${bio.slice(0, 150)}${bio.length > 150 ? "…" : ""}`
+          : previewBio.dataset.empty;
+      });
+      previewBio.dataset.empty = previewBio.textContent;
+    }
+  })();
+</script>
 {% endblock %}
