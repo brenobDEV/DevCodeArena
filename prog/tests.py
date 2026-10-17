@@ -134,6 +134,42 @@ class ChallengeFlowTests(PlatformTestCase):
 
 
 class ProfileTests(PlatformTestCase):
+    def test_profile_editor_is_personalized_for_developers_and_companies(self):
+        self.company.cnpj = "12345678000195"
+        self.company.save(update_fields=["cnpj"])
+        for user, heading, field_label, identifier in (
+            (self.dev_user, "Mostre o que você sabe fazer.", "Sobre você", self.developer.cpf),
+            (self.company_user, "Dê identidade à sua empresa.", "Sobre a empresa", self.company.cnpj),
+        ):
+            with self.subTest(account=user.username):
+                self.login_as(user)
+                response = self.client.get(reverse("account_profile"))
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, heading)
+                self.assertContains(response, field_label)
+                self.assertContains(response, "PRÉVIA DO PERFIL")
+                self.assertNotContains(response, identifier)
+
+    def test_company_can_customize_its_public_profile(self):
+        self.login_as(self.company_user)
+        response = self.client.post(reverse("account_profile"), {
+            "public_name": "Arena Tech",
+            "bio": "Criamos ferramentas para equipes de tecnologia.",
+            "skills": "Fintech, educação",
+            "technologies": "Python, Django",
+            "portfolio_url": "https://example.test/produtos",
+            "github_url": "",
+            "linkedin_url": "",
+            "website_url": "https://example.test",
+        }, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Seu perfil foi atualizado.")
+        self.company.refresh_from_db()
+        self.company_user.refresh_from_db()
+        self.assertEqual(self.company.bio, "Criamos ferramentas para equipes de tecnologia.")
+        self.assertEqual(self.company.skills, "Fintech, educação")
+        self.assertEqual(self.company_user.first_name, "Arena Tech")
+
     def test_developer_can_update_professional_profile_without_exposing_private_data(self):
         self.login_as(self.dev_user)
         response = self.client.post(reverse("account_profile"), {
