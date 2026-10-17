@@ -88,7 +88,7 @@ a { color: inherit; }
 [data-theme="dark"] .icon-sun { transform: translateY(-140%) rotate(90deg); opacity: 0; }
 .theme-toggle:hover .icon-sun { transform: rotate(40deg); }
 .theme-toggle:hover .icon-moon { transform: rotate(-18deg); }
-.brand { font-family: "Syne", sans-serif; font-weight: 800; font-size: 1.8rem; text-decoration: none; color: var(--header-fg); line-height: 1; padding: .35rem .5rem; }
+.brand { display: inline-flex; align-items: center; gap: .3rem; font-family: "Syne", sans-serif; font-weight: 800; font-size: 1.8rem; text-decoration: none; color: var(--header-fg); line-height: 1; padding: .35rem .5rem; }
 .brand:hover { color: var(--header-fg); }
 .brand__word { display: inline-flex; align-items: baseline; letter-spacing: .08em; gap: .04em; transition: letter-spacing .5s cubic-bezier(.2, .8, .2, 1), gap .5s cubic-bezier(.2, .8, .2, 1); }
 .brand__word span { display: inline-block; transition: transform .45s cubic-bezier(.2, .8, .2, 1); }
@@ -101,6 +101,31 @@ a { color: inherit; }
 .brand__dot { color: var(--logo-dot); animation: dot-blink 1.6s ease-in-out infinite; }
 .brand:hover .brand__dot, .brand:focus-visible .brand__dot { transform: translateY(-.32em) scale(1.35); }
 @keyframes dot-blink { 0%, 55%, 100% { opacity: 1; } 70% { opacity: .15; } }
+@keyframes brand-letter-in { from { opacity: 0; transform: translateY(.45em) scale(.8); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes mascot-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -2px; } }
+@keyframes mascot-core-float { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-1.5px) rotate(-1deg); } }
+@keyframes mascot-status-pulse { 0%, 100% { opacity: .65; } 50% { opacity: 1; } }
+@keyframes mascot-spark-pulse { 0%, 100% { opacity: .55; scale: .88; } 50% { opacity: 1; scale: 1.08; } }
+@keyframes mascot-eye-blink { 0%, 91%, 95%, 100% { transform: scaleY(1); } 93% { transform: scaleY(.12); } }
+
+.brand__word span:not(.brand__dot) { animation: brand-letter-in .65s cubic-bezier(.2, .8, .2, 1); }
+.brand__word span:nth-child(2) { animation-delay: .06s; }
+.brand__word span:nth-child(3) { animation-delay: .12s; }
+.brand__word span:nth-child(4) { animation-delay: .18s; }
+.brand__mascot { display: block; width: 3.9rem; height: 3.4rem; overflow: visible; transform-origin: 50% 90%; transition: transform .3s cubic-bezier(.2, .8, .2, 1); animation: mascot-bob 3.8s ease-in-out infinite; filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .3)); }
+.brand:hover .brand__mascot, .brand:focus-visible .brand__mascot { transform: scale(1.08); }
+.brand__mascot-shadow { fill: rgba(0, 0, 0, .38); }
+.brand__mascot-core { transform-box: fill-box; transform-origin: center; animation: mascot-core-float 3.8s ease-in-out infinite; }
+.brand__mascot-side { fill: #101b2a; stroke: #38506b; stroke-width: 1; stroke-linejoin: round; }
+.brand__mascot-face { fill: url(#cyber-shell); stroke: #4f7892; stroke-width: 1.2; stroke-linejoin: round; }
+.brand__mascot-top { fill: url(#cyber-top); stroke: #8af1ff; stroke-width: 1; stroke-linejoin: round; }
+.brand__mascot-seam { fill: none; stroke: rgba(177, 245, 255, .62); stroke-width: .8; }
+.brand__mascot-panel { fill: none; stroke: #76e7ff; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.brand__mascot-visor path:first-child { fill: #0a2637; stroke: #45c9ed; stroke-width: .9; }
+.brand__mascot-eye { fill: #b6f56c; filter: url(#cyber-glow); transform-box: fill-box; transform-origin: center; animation: mascot-eye-blink 4.6s ease-in-out infinite; }
+.brand__mascot-status { fill: #b6f56c; filter: url(#cyber-glow); animation: mascot-status-pulse 1.8s ease-in-out infinite; }
+.brand__mascot-spark { fill: #9cf3ff; filter: url(#cyber-glow); transform-box: fill-box; transform-origin: center; animation: mascot-spark-pulse 2.5s ease-in-out infinite; }
+.brand__mascot-spark--small { fill: #b6f56c; animation-delay: -1.2s; }
 
 .icon-btn { width: 44px; height: 44px; display: grid; place-items: center; border: 0; background: transparent; color: var(--header-fg); border-radius: 12px; cursor: pointer; font-size: 1.35rem; transition: background .2s, transform .2s; }
 .icon-btn:hover { background: rgba(248, 250, 252, .12); }
