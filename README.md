@@ -60,4 +60,4 @@ Os testes automatizados cobrem listagem, inscrição única, bloqueio de papéis
 - `home.js` (three.js + GSAP) é separado de `home_motion.js` (reveal/tilt): se o CDN falhar, a página segue funcionando e as cenas mostram um fallback após 8 s.
 - Páginas de desafios (`/desafios/…`) exigem login; visitantes vão para `/entrar/?next=…`. Para torná-las públicas de novo, remova `@login_required` de `challenge_periods`, `challenge_list` e `challenge_detail` em `views_platform.py`.
 - Cadastro de empresa com endereço (CEP/ViaCEP) — migração `0006_profile_endereco`.
-- Se você tinha um banco da versão antiga (`0004_profile_cnpj`/`0005_profile_endereco`), apague-o e rode `python manage.py migrate`.
+- Faça uma cópia de segurança do banco antes de atualizar. Não apague nem substitua `db.sqlite3`: rode `python manage.py migrate` para aplicar somente as migrations pendentes. As migrations aceitam bancos que já tenham seguido o histórico antigo ou o histórico de perfis profissionais.

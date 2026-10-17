@@ -2,6 +2,8 @@
 
 from django.db import migrations, models
 
+from prog.migration_operations import SharedAddField, SharedAlterField
+
 
 class Migration(migrations.Migration):
 
@@ -10,14 +12,16 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
+        SharedAddField(
             model_name='profile',
             name='cnpj',
             field=models.CharField(blank=True, max_length=14, null=True, unique=True),
+            peer_migration='0004_profile_cnpj',
         ),
-        migrations.AlterField(
+        SharedAlterField(
             model_name='profile',
             name='cpf',
             field=models.CharField(blank=True, max_length=11, null=True, unique=True),
+            peer_migration='0004_profile_cnpj',
         ),
     ]

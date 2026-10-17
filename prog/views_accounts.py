@@ -45,7 +45,7 @@ def _signup(request, kind):
         return redirect("home")
     form = SignupForm(request.POST or None, kind=kind)
     if request.method == "POST" and form.is_valid():
-        login(request, form.save(kind))
+        login(request, form.save())
         return redirect("home")
     return render(request, "accounts/signup.html", {"form": form, "kind": kind, "copy": COPY[kind]})
 
