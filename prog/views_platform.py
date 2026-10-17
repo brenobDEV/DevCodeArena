@@ -173,11 +173,14 @@ def account_profile(request):
     profile = _profile(request)
     if not profile:
         return HttpResponseForbidden("Esta conta não possui um perfil DevCodeArena válido.")
-    form = ProfileForm(request.POST or None, instance=profile)
+    saved_avatar = profile.avatar
+    form = ProfileForm(request.POST or None, request.FILES or None, instance=profile)
     if request.method == "POST" and form.is_valid():
         form.save()
         messages.success(request, "Seu perfil foi atualizado.")
         return redirect("account_profile")
+    if request.method == "POST":
+        profile.avatar = saved_avatar
     return render(request, "platform/profile.html", {"profile": profile, "form": form})
 
 

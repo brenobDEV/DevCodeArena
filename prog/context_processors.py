@@ -47,8 +47,10 @@ def account_type(user):
 
 def dca(request):
     links = getattr(settings, "DCA_SOCIAL_LINKS", {})
+    profile = getattr(request.user, "dca_profile", None) if request.user.is_authenticated else None
     return {
         "nav": {key: _url(name) for key, name in URL_NAMES.items()},
-        "account_type": account_type(request.user),
+        "account_type": profile.tipo if profile else None,
+        "account_profile": profile,
         "channels": [{**channel, "url": links.get(channel["key"], "")} for channel in CHANNELS],
     }

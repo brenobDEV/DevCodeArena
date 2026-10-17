@@ -77,7 +77,8 @@
 .challenge-card h3 { font-size:1.2rem; line-height:1.3; margin:0 0 .45rem; }
 .challenge-card h3 a { color:inherit; text-decoration:none; }
 .challenge-card h3 a:hover { color:var(--link); }
-.challenge-card__company { color:var(--muted); font-size:.88rem; margin:0 0 .75rem; }
+.challenge-card__company { display:flex; align-items:center; gap:.45rem; margin:0 0 .75rem; color:var(--muted); font-size:.88rem; }
+.challenge-company__avatar { width:1.5rem; height:1.5rem; border:1px solid var(--border); border-radius:50%; object-fit:cover; }
 .challenge-card__description { font-size:.94rem; color:var(--muted); line-height:1.6; }
 .challenge-tags { display:grid; gap:.45rem; width:100%; margin:.35rem 0 1rem; }
 .challenge-tags span { display:flex; align-items:flex-start; gap:.45rem; color:var(--muted); font-size:.82rem; overflow-wrap:anywhere; }
@@ -165,6 +166,7 @@
 .profile-card h2 { margin:.5rem 0; }
 .profile-card>div:nth-child(2) { flex:1; }
 .profile-avatar,.conversation-avatar { flex:0 0 auto; width:3.2rem; height:3.2rem; display:grid; place-items:center; border-radius:14px; background:color-mix(in srgb,var(--interact) 12%,var(--surface)); color:var(--interact); font-size:1.45rem; }
+.conversation-avatar__photo { width:100%; height:100%; border-radius:inherit; object-fit:cover; }
 .profile-page { padding-top:clamp(2.25rem,5vw,4.5rem); }
 .profile-intro { display:flex; align-items:flex-end; justify-content:space-between; gap:1.5rem; padding:0 0 2rem; }
 .profile-intro h1 { max-width:18ch; margin:.55rem 0 .65rem; font-size:clamp(2.15rem,4vw,3.4rem); letter-spacing:-.045em; }
@@ -188,6 +190,16 @@
 .profile-fields .field__input { min-width:0; }
 .profile-fields textarea.field__input { min-height:112px; resize:vertical; line-height:1.55; }
 .profile-fields .form-field--wide { grid-column:1/-1; }
+.profile-photo-field { display:grid; gap:.8rem; padding:1rem; border:1px solid var(--border); border-radius:14px; background:color-mix(in srgb,var(--interact) 3%,var(--surface)); }
+.profile-photo-field__current { display:flex; align-items:center; gap:.85rem; }
+.profile-photo-field__avatar { display:grid; flex:0 0 auto; width:4rem; aspect-ratio:1; place-items:center; overflow:hidden; border:1px solid var(--border); border-radius:14px; background:var(--surface); color:var(--interact); font-size:1.5rem; }
+.profile-photo-field__avatar img { width:100%; height:100%; object-fit:cover; }
+.profile-photo-field__copy { display:grid; gap:.2rem; }
+.profile-photo-field__copy span,.profile-photo-field .form-field small { color:var(--muted); font-size:.78rem; line-height:1.5; }
+.profile-photo-field .form-field { margin:0; }
+.profile-photo-field__remove { display:flex; align-items:center; flex-wrap:wrap; gap:.4rem; font-size:.82rem; }
+.profile-photo-field__remove input { width:1rem; height:1rem; accent-color:var(--interact); }
+.profile-photo-field__remove label { cursor:pointer; }
 .profile-form__actions { align-items:center; justify-content:space-between; gap:1rem; }
 .profile-form__actions>p { display:flex; align-items:flex-start; gap:.5rem; max-width:38ch; margin:0; color:var(--muted); font-size:.78rem; line-height:1.5; }
 .profile-form__actions>p i { color:var(--interact); }
@@ -199,6 +211,7 @@
 .profile-preview__top i { color:var(--interact); font-size:1rem; }
 .profile-preview__avatar { position:relative; z-index:1; display:grid; width:3.75rem; aspect-ratio:1; place-items:center; margin:1.4rem 0 .8rem; border:1px solid color-mix(in srgb,var(--interact) 28%,var(--border)); border-radius:17px; background:color-mix(in srgb,var(--interact) 12%,var(--surface)); color:var(--interact); font-size:1.65rem; box-shadow:0 8px 24px color-mix(in srgb,var(--interact) 12%,transparent); }
 .profile-preview__avatar--company { border-radius:50%; }
+.profile-preview__avatar img { width:100%; height:100%; border-radius:inherit; object-fit:cover; }
 .profile-preview__kind { color:var(--accent-ink); font-size:.73rem; font-weight:700; }
 .profile-preview h2 { position:relative; margin:.35rem 0 .55rem; font-size:1.35rem; letter-spacing:-.025em; overflow-wrap:anywhere; }
 .profile-preview__bio { min-height:3.3em; margin:0; color:var(--muted); font-size:.86rem; line-height:1.6; overflow-wrap:anywhere; }
@@ -241,6 +254,10 @@
 .candidate-profile small { color:var(--muted); }
 .candidate-profile__links { display:flex; flex-wrap:wrap; gap:.6rem; margin-top:.25rem; }
 .candidate-profile__links a { font-weight:700; }
+.candidate-identity { display:flex; align-items:center; gap:.7rem; }
+.candidate-identity>div { display:grid; gap:.2rem; }
+.candidate-identity__photo { display:grid; flex:0 0 auto; width:2.8rem; aspect-ratio:1; place-items:center; overflow:hidden; border:1px solid var(--border); border-radius:50%; object-fit:cover; }
+.candidate-identity__photo--fallback { background:color-mix(in srgb,var(--interact) 10%,var(--surface)); color:var(--interact); font-size:1.1rem; }
 @media (max-width:1000px) {
  .profile-editor { grid-template-columns:minmax(0,1fr) minmax(240px,.72fr); gap:.9rem; }
  .challenge-hero { grid-template-columns:minmax(0,1fr) minmax(0,.9fr); gap:1rem; }

@@ -13,7 +13,7 @@
     </header>
 
     <div class="profile-editor">
-      <form method="post" class="content-panel platform-form profile-form">
+      <form method="post" enctype="multipart/form-data" class="content-panel platform-form profile-form">
         {% csrf_token %}
         <div class="profile-form__heading">
           <span class="profile-form__icon"><i class="bi bi-sliders" aria-hidden="true"></i></span>
@@ -38,6 +38,36 @@
             </div>
           </div>
           <div class="profile-fields">
+            <div class="profile-photo-field form-field--wide">
+              <div class="profile-photo-field__current">
+                <div class="profile-photo-field__avatar" data-photo-preview>
+                  {% if profile.avatar %}
+                    <img src="{{ profile.avatar.url }}" alt="Foto atual do perfil">
+                  {% else %}
+                    <i class="bi {% if profile.tipo == 'company' %}bi-building{% else %}bi-person{% endif %}" aria-hidden="true"></i>
+                  {% endif %}
+                </div>
+                <div class="profile-photo-field__copy">
+                  <strong>Foto do perfil</strong>
+                  <span>{% if profile.tipo == "company" %}Use a logo da empresa para ela ser reconhecida nos desafios.{% else %}Escolha uma foto que ajude as empresas a reconhecer seu perfil.{% endif %}</span>
+                </div>
+              </div>
+              {% for field in form %}
+                {% if field.name == "avatar" %}
+                  <div class="form-field">
+                    <label for="{{ field.id_for_label }}">Escolher foto</label>
+                    {{ field }}
+                    {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                    {% for error in field.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+                  </div>
+                {% elif field.name == "remove_avatar" and profile.avatar %}
+                  <div class="profile-photo-field__remove">
+                    {{ field }}<label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {% for error in field.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
             {% for field in form %}
               {% if field.name == "public_name" or field.name == "bio" %}
                 <div class="form-field {% if field.name == 'public_name' or field.name == 'bio' %}form-field--wide{% endif %}">
@@ -110,14 +140,18 @@
             <span>PRÉVIA DO PERFIL</span>
             <i class="bi bi-eye" aria-hidden="true"></i>
           </div>
-          <div class="profile-preview__avatar {% if profile.tipo == 'company' %}profile-preview__avatar--company{% endif %}">
-            <i class="bi {% if profile.tipo == 'company' %}bi-building{% else %}bi-code-slash{% endif %}" aria-hidden="true"></i>
+          <div class="profile-preview__avatar {% if profile.tipo == 'company' %}profile-preview__avatar--company{% endif %}" data-profile-avatar>
+            {% if profile.avatar %}
+              <img src="{{ profile.avatar.url }}" alt="Foto de {{ profile.public_name }}" data-profile-avatar-image>
+            {% else %}
+              <i class="bi {% if profile.tipo == 'company' %}bi-building{% else %}bi-code-slash{% endif %}" aria-hidden="true"></i>
+            {% endif %}
           </div>
           <span class="profile-preview__kind">{{ profile.get_tipo_display }}</span>
           <h2 data-profile-preview-name>{{ profile.public_name }}</h2>
           <p class="profile-preview__bio" data-profile-preview-bio>{% if profile.bio %}{{ profile.bio|truncatechars:150 }}{% elif profile.tipo == "company" %}Sua apresentação aparecerá aqui para quem conhecer seus desafios.{% else %}Sua apresentação aparecerá aqui para as empresas.{% endif %}</p>
           <div class="profile-preview__since"><i class="bi bi-calendar3" aria-hidden="true"></i> Na comunidade desde {{ profile.created_at|date:"M Y" }}</div>
-          <div class="profile-preview__note"><i class="bi bi-info-circle" aria-hidden="true"></i><span>Esta prévia mostra apenas informações profissionais. CPF, CNPJ e e-mail não aparecem aqui.</span></div>
+          <div class="profile-preview__note"><i class="bi bi-info-circle" aria-hidden="true"></i><span>Sua foto e seus dados profissionais ficam visíveis no perfil. CPF, CNPJ e e-mail permanecem privados.</span></div>
         </section>
 
         <section class="profile-tip">
@@ -136,8 +170,31 @@
   (() => {
     const nameInput = document.getElementById("id_public_name");
     const bioInput = document.getElementById("id_bio");
+    const avatarInput = document.getElementById("id_avatar");
+    const removeAvatarInput = document.getElementById("id_remove_avatar");
     const previewName = document.querySelector("[data-profile-preview-name]");
     const previewBio = document.querySelector("[data-profile-preview-bio]");
+    const previewAvatar = document.querySelector("[data-profile-avatar]");
+    const photoPreview = document.querySelector("[data-photo-preview]");
+    let previewUrl = null;
+    const showFallback = (container, iconClass) => {
+      if (!container) return;
+      const icon = document.createElement("i");
+      icon.className = `bi ${iconClass}`;
+      icon.setAttribute("aria-hidden", "true");
+      container.replaceChildren(icon);
+    };
+    const showSelectedPhoto = (url) => {
+      [previewAvatar, photoPreview].forEach((container) => {
+        if (!container) return;
+        container.replaceChildren(Object.assign(document.createElement("img"), {
+          src: url,
+          alt: "Prévia da foto selecionada",
+        }));
+      });
+    };
+    const fallbackIcon = "{% if profile.tipo == 'company' %}bi-building{% else %}bi-person{% endif %}";
+    const savedPhotoUrl = "{% if profile.avatar %}{{ profile.avatar.url|escapejs }}{% endif %}";
     if (nameInput && previewName) {
       nameInput.addEventListener("input", () => {
         previewName.textContent = nameInput.value.trim() || nameInput.defaultValue;
@@ -151,6 +208,31 @@
           : previewBio.dataset.empty;
       });
       previewBio.dataset.empty = previewBio.textContent;
+    }
+    if (avatarInput && previewAvatar && photoPreview) {
+      avatarInput.addEventListener("change", () => {
+        const file = avatarInput.files?.[0];
+        if (!file) return;
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        previewUrl = URL.createObjectURL(file);
+        showSelectedPhoto(previewUrl);
+        if (removeAvatarInput) removeAvatarInput.checked = false;
+      });
+    }
+    if (removeAvatarInput && previewAvatar && photoPreview) {
+      removeAvatarInput.addEventListener("change", () => {
+        if (!removeAvatarInput.checked) {
+          if (previewUrl) showSelectedPhoto(previewUrl);
+          else if (savedPhotoUrl) showSelectedPhoto(savedPhotoUrl);
+          else {
+            showFallback(previewAvatar, fallbackIcon);
+            showFallback(photoPreview, fallbackIcon);
+          }
+          return;
+        }
+        showFallback(previewAvatar, fallbackIcon);
+        showFallback(photoPreview, fallbackIcon);
+      });
     }
   })();
 </script>

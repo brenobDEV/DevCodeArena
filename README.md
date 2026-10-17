@@ -6,7 +6,7 @@ Plataforma Django para desafios de programação, avaliação de submissões e c
 
 - Python compatível com a versão de Django definida em requirements.txt.
 - SQLite, configurado como banco padrão.
-- Nenhuma dependência nova é necessária para esta fase.
+- Pillow (instalado por `requirements.txt`) para validar e armazenar fotos de perfil.
 
 ## Executar localmente
 
@@ -28,7 +28,7 @@ Abra http://127.0.0.1:8000/ no navegador. Acesse o Django Admin em /admin/ depoi
 ## Fluxos nesta versão
 
 - Cadastro/login para desenvolvedores (CPF) e empresas (CNPJ), com validação e armazenamento separados dos identificadores.
-- Perfis profissionais editáveis com nome público, apresentação, competências, tecnologias e links de portfólio; CPF permanece obrigatório no cadastro e privado.
+- Perfis profissionais editáveis para desenvolvedores e empresas, com foto, nome público, apresentação, competências, tecnologias e links de portfólio; CPF permanece obrigatório no cadastro e privado.
 - Página inicial responsiva com uma arena 3D em CSS que representa desafios e talentos, movimento de ponteiro, animações pausadas fora da tela, suporte a movimento reduzido e sem renderização WebGL contínua.
 - Catálogo de desafios publicados, ciclos semanais/mensais, filtros via GET e paginação.
 - Rascunhos, publicação, edição, encerramento e gestão de desafios próprios por empresa.
@@ -48,6 +48,7 @@ Abra http://127.0.0.1:8000/ no navegador. Acesse o Django Admin em /admin/ depoi
 - Esta versão não executa código enviado por usuários, não fornece isolamento de execução, não possui WebSockets nem integração externa de recrutamento.
 - A classificação atual é uma soma simples e global das notas avaliadas. Não há histórico por período nem detecção de fraude.
 - Antes de produção: defina `DJANGO_SECRET_KEY` com uma chave nova e privada, `DJANGO_DEBUG=False` e `DJANGO_ALLOWED_HOSTS=seu-dominio.com` no ambiente de execução. A aplicação recusa iniciar em modo de produção sem chave e hosts configurados. A chave que já esteve versionada deve ser considerada comprometida e rotacionada; não a reutilize. Configure HTTPS, backups, política de retenção de dados pessoais e revise a segurança. Não apague db.sqlite3 para aplicar migrations.
+- Fotos enviadas ficam em `MEDIA_ROOT` (por padrão, `media/`, ignorada pelo Git). Em desenvolvimento o Django as serve quando `DEBUG=True`; em produção configure armazenamento persistente e a entrega de `MEDIA_URL` no servidor ou em um serviço de mídia antes de habilitar uploads.
 
 ## Testes
 

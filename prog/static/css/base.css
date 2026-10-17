@@ -112,6 +112,7 @@ a { color: inherit; }
 .settings-menu { background: var(--menu-bg); color: #f8fafc; border: 1px solid rgba(248, 250, 252, .16); border-radius: 14px; padding: 1.25rem 1rem 1rem; min-width: 14.5rem; margin-top: .5rem !important; box-shadow: 0 16px 36px rgba(2, 6, 23, .35); }
 .settings-menu__who { display: flex; flex-direction: column; align-items: center; gap: .15rem; margin-bottom: 1rem; }
 .settings-menu__avatar { font-size: 2.2rem; line-height: 1; }
+.settings-menu__avatar--photo { width: 3.25rem; height: 3.25rem; border-radius: 50%; object-fit: cover; }
 .settings-menu__name { font-size: .9rem; }
 .settings-menu__list { list-style: none; margin: 0; padding: 0; display: grid; gap: .1rem; }
 .settings-menu__list a, .settings-menu__list button { display: block; width: 100%; text-align: left; background: none; border: 0; color: #f8fafc; text-decoration: none; padding: .55rem .6rem; border-radius: 8px; font-size: .95rem; cursor: pointer; }
