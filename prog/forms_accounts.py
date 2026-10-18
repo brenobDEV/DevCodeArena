@@ -1,5 +1,6 @@
 import re
 
+
 from django import forms
 from django.contrib.auth import authenticate, get_user_model, password_validation
 from django.db import transaction
@@ -190,3 +191,70 @@ class LoginForm(StyledForm):
             raise forms.ValidationError(f"Esta é uma conta de {LABEL[profile.tipo]}. Use o login de {LABEL[profile.tipo]}.")
         self.user = user
         return data
+    
+
+
+#-------------------------------------tony :>---------------------------------------------
+
+
+
+
+
+    
+
+from .models import (
+    Perfil,
+    PerfilDesenvolvedor,
+    PerfilEmpresa,
+    ProjetoPortfolio,
+)
+
+
+class PerfilForm(forms.ModelForm):
+    class Meta:
+        model = Perfil
+        fields = [
+            "nome_publico",
+            "biografia",
+            "localizacao",
+            "site",
+            "publico",
+        ]
+
+
+class PerfilDesenvolvedorForm(forms.ModelForm):
+    class Meta:
+        model = PerfilDesenvolvedor
+        fields = [
+            "especialidade",
+            "experiencia_anos",
+            "github",
+            "linkedin",
+            "portfolio",
+            "disponivel_para_trabalho",
+        ]
+
+
+class PerfilEmpresaForm(forms.ModelForm):
+    class Meta:
+        model = PerfilEmpresa
+        fields = [
+            "nome_empresa",
+            "setor",
+            "site_empresa",
+            "descricao",
+            "contato_profissional",
+        ]
+
+
+class ProjetoPortfolioForm(forms.ModelForm):
+    class Meta:
+        model = ProjetoPortfolio
+        fields = [
+            "titulo",
+            "descricao",
+            "url_projeto",
+            "tecnologias",
+            "publicado",
+        ]
+#-------------------------------------tony :>---------------------------------------------
