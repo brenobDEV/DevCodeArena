@@ -2,18 +2,8 @@ from django.contrib import admin
 
 from .models import Challenge, Conversation, Message, Participation, Submission
 from .models_accounts import Profile
-#-------------------------------------tony :>---------------------------------------------
-from django.contrib import admin
-from .models import (
-    Perfil,
-    PerfilDesenvolvedor,
-    PerfilEmpresa,
-    Habilidade,
-    HabilidadePerfil,
-    ProjetoPortfolio,
-    PerfilFavorito,
-)
-#-------------------------------------tony :>---------------------------------------------
+
+
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ("user", "tipo", "cnpj", "cidade", "uf", "created_at")
@@ -64,54 +54,3 @@ class MessageAdmin(admin.ModelAdmin):
     list_display = ("conversation", "sender", "created_at", "read_at")
     search_fields = ("body", "sender__user__first_name")
     list_filter = ("created_at", "read_at")
-
-
-#-------------------------------------tony :>---------------------------------------------
-
-
-class PerfilDesenvolvedorInline(admin.StackedInline):
-    model = PerfilDesenvolvedor
-    extra = 0
-
-
-class PerfilEmpresaInline(admin.StackedInline):
-    model = PerfilEmpresa
-    extra = 0
-
-
-class HabilidadePerfilInline(admin.TabularInline):
-    model = HabilidadePerfil
-    extra = 0
-
-
-@admin.register(Perfil)
-class PerfilAdmin(admin.ModelAdmin):
-    list_display = ("nome_publico", "tipo", "usuario", "publico")
-    list_filter = ("tipo", "publico")
-    search_fields = ("nome_publico", "usuario__username")
-    inlines = [
-        PerfilDesenvolvedorInline,
-        PerfilEmpresaInline,
-        HabilidadePerfilInline,
-    ]
-
-
-@admin.register(Habilidade)
-class HabilidadeAdmin(admin.ModelAdmin):
-    search_fields = ("nome",)
-
-
-@admin.register(ProjetoPortfolio)
-class ProjetoPortfolioAdmin(admin.ModelAdmin):
-    list_display = ("titulo", "perfil", "publicado", "criado_em")
-    list_filter = ("publicado",)
-    search_fields = ("titulo", "perfil__nome_publico")
-
-
-@admin.register(PerfilFavorito)
-class PerfilFavoritoAdmin(admin.ModelAdmin):
-    list_display = ("usuario", "perfil", "criado_em")
-
-
-admin.site.register(HabilidadePerfil)
-#-------------------------------------tony :>---------------------------------------------
