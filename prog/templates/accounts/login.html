@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Entrar como {% if kind == "developer" %}desenvolvedor{% else %}empresa{% endif %} — DevCodeArena{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/accounts.css' %}?v=10">{% endblock %}
+
+{# Sem menu de configurações e sem rodapé: nada que tire o usuário do fluxo de acesso #}
+{% block settings_menu %}{% endblock %}
+{% block site_footer %}{% endblock %}
+
+{% block content %}
+<section class="auth auth--{{ copy.slug }}">
+  <div class="container auth__grid">
+    <aside class="auth__panel" aria-hidden="false">
+      <span class="auth__badge">{{ copy.badge }}</span>
+      <p class="auth__glyph" aria-hidden="true">{{ copy.glyph }}</p>
+      <h1 class="auth__title">{{ copy.login_title }}</h1>
+      <p class="auth__text">{{ copy.login_text }}</p>
+    </aside>
+
+    <div class="auth__card">
+      <nav class="auth__tabs" aria-label="Tipo de conta">
+        <a href="{{ nav.login_dev }}"{% if kind == "developer" %} class="is-active" aria-current="page"{% endif %}>Sou DEV</a>
+        <a href="{{ nav.login_company }}"{% if kind == "company" %} class="is-active" aria-current="page"{% endif %}>Sou empresa</a>
+      </nav>
+
+      <h2 class="auth__heading">Entrar</h2>
+      <form method="post" novalidate class="auth__form">
+        {% csrf_token %}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+        {% if form.non_field_errors %}
+        <div class="auth__alert" role="alert">{% for e in form.non_field_errors %}<p>{{ e }}</p>{% endfor %}</div>
+        {% endif %}
+        {% include "accounts/_field.html" with field=form.email %}
+        {% include "accounts/_field.html" with field=form.senha %}
+        <button type="submit" class="btn-dca btn-dca--primary auth__submit">Entrar</button>
+      </form>
+
+      <p class="auth__switch">Ainda não tem conta?
+        <a href="{% if kind == 'developer' %}{{ nav.signup_dev }}{% else %}{{ nav.signup_company }}{% endif %}">Criar conta</a>
+      </p>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/accounts.js' %}?v=8" defer></script>{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base_authenticated.html" %}
+{% block title %}Ciclos de desafios — DevCodeArena{% endblock %}
+{% block content %}
+<section class="platform-page">
+  <div class="container">
+    <header class="platform-hero challenge-hero">
+      <div class="challenge-hero__copy">
+        <p class="eyebrow">SUA PRÓXIMA CONQUISTA COMEÇA AQUI</p>
+        <h1>Transforme desafios reais em experiência.</h1>
+        <p>Escolha um problema, aplique suas habilidades e mostre como você constrói soluções. Cada desafio é uma oportunidade prática de evoluir.</p>
+        <div class="challenge-hero__actions">
+          <a class="btn-dca btn-dca--primary" href="{% url 'challenge_list' %}"><i class="bi bi-search" aria-hidden="true"></i> Explorar desafios</a>
+          <span><i class="bi bi-check2-circle" aria-hidden="true"></i> Desafios semanais e mensais</span>
+        </div>
+      </div>
+      {% include "platform/_challenge_hero_visual.html" %}
+    </header>
+    <div class="period-grid">
+      <article class="period-card period-card--weekly"><div class="period-card__icon"><i class="bi bi-calendar-week" aria-hidden="true"></i></div><p class="eyebrow">CICLO RÁPIDO</p><h2>Desafios semanais</h2><p>Resolva problemas focados, pratique e crie consistência. Uma missão curta para colocar suas ideias em movimento.</p><div class="period-card__meta"><strong>{{ weekly_count }}</strong><span>{% if weekly_count == 1 %}desafio disponível{% else %}desafios disponíveis{% endif %}</span></div><a class="btn-dca btn-dca--outline" href="{% url 'challenge_list' %}?period=weekly">Ver desafios semanais <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a></article>
+      <article class="period-card period-card--monthly"><div class="period-card__icon"><i class="bi bi-calendar-month" aria-hidden="true"></i></div><p class="eyebrow">CONSTRUÇÃO APROFUNDADA</p><h2>Desafios mensais</h2><p>Explore requisitos maiores, aprofunde suas escolhas técnicas e desenvolva soluções completas.</p><div class="period-card__meta"><strong>{{ monthly_count }}</strong><span>{% if monthly_count == 1 %}desafio disponível{% else %}desafios disponíveis{% endif %}</span></div><a class="btn-dca btn-dca--outline" href="{% url 'challenge_list' %}?period=monthly">Ver desafios mensais <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a></article>
+    </div>
+    <div class="section-heading"><div><p class="eyebrow">ESCOLHA SUA PRÓXIMA MISSÃO</p><h2>Desafios com prazo mais próximo</h2></div><a class="text-link" href="{% url 'challenge_list' %}?state=ending">Ver todos <i class="bi bi-arrow-right" aria-hidden="true"></i></a></div>
+    <div class="challenge-grid">{% for challenge in weekly_challenges %}{% include "platform/_challenge_card.html" with challenge=challenge %}{% endfor %}{% for challenge in monthly_challenges %}{% include "platform/_challenge_card.html" with challenge=challenge %}{% endfor %}</div>
+    {% if not weekly_challenges and not monthly_challenges %}<div class="empty-state"><span class="empty-state__icon"><i class="bi bi-trophy" aria-hidden="true"></i></span><h3>A arena está se preparando</h3><p>Ainda não há desafios publicados. Volte em breve para conferir novas oportunidades.</p><a class="btn-dca btn-dca--outline" href="{% url 'challenge_list' %}">Explorar catálogo</a></div>{% endif %}
+  </div>
+</section>
+{% endblock %}
