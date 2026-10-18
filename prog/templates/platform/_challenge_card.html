@@ -1,7 +1,7 @@
 <article class="challenge-card">
   <div class="challenge-card__top"><span class="pill pill--{{ challenge.difficulty }}">{{ challenge.get_difficulty_display }}</span><span class="pill">{{ challenge.get_period_display }}</span></div>
   <h3><a href="{% url 'challenge_detail' challenge.pk %}">{{ challenge.title }}</a></h3>
-  <p class="challenge-card__company">{% if challenge.company.avatar %}<img class="challenge-company__avatar" src="{{ challenge.company.avatar.url }}" alt="">{% else %}<i class="bi bi-building" aria-hidden="true"></i>{% endif %} {{ challenge.company.public_name }}</p>
+  <p class="challenge-card__company">{% if challenge.company.avatar %}<img class="challenge-company__avatar" src="{{ challenge.company.avatar.url }}" alt="" width="48" height="48" loading="lazy" decoding="async">{% else %}<i class="bi bi-building" aria-hidden="true"></i>{% endif %} {{ challenge.company.public_name }}</p>
   <p class="challenge-card__description">{{ challenge.description|truncatechars:150 }}</p>
   <div class="challenge-tags">{% if challenge.languages %}<span><i class="bi bi-code-slash" aria-hidden="true"></i> {{ challenge.languages|truncatechars:48 }}</span>{% endif %}{% if challenge.technologies %}<span><i class="bi bi-layers" aria-hidden="true"></i> {{ challenge.technologies|truncatechars:48 }}</span>{% endif %}</div>
   <div class="challenge-card__bottom"><span><i class="bi bi-clock" aria-hidden="true"></i> Até {{ challenge.deadline|date:"d/m/Y H:i" }}</span>{% if challenge.reward %}<strong>R$ {{ challenge.reward|floatformat:2 }}</strong>{% else %}<strong>Portfólio</strong>{% endif %}</div>

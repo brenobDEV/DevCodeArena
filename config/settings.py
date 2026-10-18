@@ -19,12 +19,17 @@ from django.core.exceptions import ImproperlyConfigured
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def _env_bool(name, default=False):
+    value = os.environ.get(name)
+    return default if value is None else value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # Read secrets and deploy-specific settings from the environment.
 # The development fallback is intentionally unsuitable for production.
-DEBUG = os.environ.get("DJANGO_DEBUG", "True").strip().lower() in {"1", "true", "yes", "on"}
+DEBUG = _env_bool("DJANGO_DEBUG", True)
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "").strip()
 if not SECRET_KEY:
     if DEBUG:
@@ -135,21 +140,56 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# HTTPS settings: production expects HTTPS unless the hosting proxy handles it.
+SECURE_SSL_REDIRECT = _env_bool("DJANGO_SECURE_SSL_REDIRECT", not DEBUG)
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_SECURE_HSTS_SECONDS", "0"))
+if _env_bool("DJANGO_TRUST_X_FORWARDED_PROTO"):
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+]
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
+MAILER_BACKEND = os.environ.get(
+    "DJANGO_EMAIL_BACKEND",
+    "django.core.mail.backends.console.EmailBackend"
+    if DEBUG else "django.core.mail.backends.smtp.EmailBackend",
+).strip()
+MAILER_OPTIONS = {}
+if MAILER_BACKEND == "django.core.mail.backends.smtp.EmailBackend":
+    MAILER_OPTIONS = {
+        "host": os.environ.get("DJANGO_EMAIL_HOST", ""),
+        "port": int(os.environ.get("DJANGO_EMAIL_PORT", "25")),
+        "username": os.environ.get("DJANGO_EMAIL_USERNAME", ""),
+        "password": os.environ.get("DJANGO_EMAIL_PASSWORD", ""),
+        "use_tls": _env_bool("DJANGO_EMAIL_USE_TLS"),
+        "use_ssl": _env_bool("DJANGO_EMAIL_USE_SSL"),
+        "timeout": int(os.environ.get("DJANGO_EMAIL_TIMEOUT", "10")),
+    }
+
 MAILERS = {
     'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
+        'BACKEND': MAILER_BACKEND,
+        'OPTIONS': MAILER_OPTIONS,
     },
 }
 
 DCA_SOCIAL_LINKS = {
-    "github": "https://github.com/Prog.",
-    "linkedin": "https://www.linkedin.com/company/prog.",
-    "instagram": "https://www.instagram.com/prog.",
-    "email": "mailto:contact@prog.com",
-}   
+    "github": os.environ.get("DCA_GITHUB_URL", "").strip(),
+    "linkedin": os.environ.get("DCA_LINKEDIN_URL", "").strip(),
+    "instagram": os.environ.get("DCA_INSTAGRAM_URL", "").strip(),
+    "email": (
+        f"mailto:{os.environ.get('DCA_CONTACT_EMAIL', '').strip()}"
+        if os.environ.get("DCA_CONTACT_EMAIL", "").strip() else ""
+    ),
+}

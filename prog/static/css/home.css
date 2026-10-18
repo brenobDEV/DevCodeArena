@@ -28,7 +28,7 @@
 
 .hero-visual { position:relative; isolation:isolate; display:grid; place-items:center; min-height:clamp(360px,42vw,500px); perspective:1100px; }
 .hero-visual__glow { position:absolute; z-index:-1; width:74%; aspect-ratio:1; border-radius:50%; background:radial-gradient(circle,color-mix(in srgb,var(--trust) 22%,transparent),transparent 68%); filter:blur(10px); }
-.arena-stage { position:relative; z-index:1; width:min(100%,570px); height:clamp(340px,40vw,460px); transform:perspective(1000px) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg)); transform-style:preserve-3d; transition:transform .45s cubic-bezier(.2,.7,.2,1); will-change:transform; }
+.arena-stage { position:relative; z-index:1; width:min(100%,570px); height:clamp(340px,40vw,460px); transform:perspective(1000px) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg)); transform-style:preserve-3d; transition:transform .45s cubic-bezier(.2,.7,.2,1); }
 .arena-grid { position:absolute; inset:10% 4% 7%; transform:rotateX(66deg) rotateZ(-12deg) translateZ(-55px); background-image:linear-gradient(rgba(56,189,248,.1) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,.1) 1px,transparent 1px); background-size:24px 24px; mask-image:radial-gradient(ellipse,black 5%,transparent 72%); }
 .arena-ring { position:absolute; left:50%; top:58%; border:1px solid rgba(56,189,248,.42); border-radius:50%; transform-style:preserve-3d; pointer-events:none; }
 .arena-ring--outer { width:88%; height:45%; transform:translate(-50%,-50%) rotateX(67deg) translateZ(-24px); box-shadow:0 0 22px rgba(14,165,233,.12),inset 0 0 22px rgba(14,165,233,.09); animation:ring-breathe 5s ease-in-out infinite; }

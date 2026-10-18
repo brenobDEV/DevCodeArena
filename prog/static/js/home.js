@@ -1,12 +1,48 @@
 /* DevCodeArena — home.js: cena da mão + </> e Coliseu 3D (Three.js + GSAP) */
-import * as THREE from "three";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
-import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
-import { createHandRig } from "./hand_rig.js?v=1";
-
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
+let THREE, GLTFLoader, RoomEnvironment, mergeGeometries, createHandRig, rimInk, glowU;
+let sceneModulesPromise;
+
+function loadSceneModules() {
+  if (!sceneModulesPromise) {
+    sceneModulesPromise = Promise.all([
+      import("three"),
+      import("three/addons/loaders/GLTFLoader.js"),
+      import("three/addons/environments/RoomEnvironment.js"),
+      import("three/addons/utils/BufferGeometryUtils.js"),
+      import("./hand_rig.js?v=1"),
+    ]).then(([three, loader, environment, geometryUtils, handRig]) => {
+      THREE = three;
+      GLTFLoader = loader.GLTFLoader;
+      RoomEnvironment = environment.RoomEnvironment;
+      mergeGeometries = geometryUtils.mergeGeometries;
+      createHandRig = handRig.createHandRig;
+      rimInk = { value: new THREE.Color(0x1669b6) };
+      glowU = { value: new THREE.Color(0x3b82f6) };
+    });
+  }
+  return sceneModulesPromise;
+}
+
+let gsapPromise;
+function loadGsap() {
+  if (window.gsap) return Promise.resolve();
+  if (!gsapPromise) {
+    gsapPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js";
+      script.async = true;
+      script.onload = () => window.gsap
+        ? resolve()
+        : reject(new Error("O CDN carregou sem disponibilizar GSAP."));
+      script.onerror = () => reject(new Error("Não foi possível carregar GSAP pelo CDN."));
+      document.head.append(script);
+    });
+  }
+  return gsapPromise;
+}
+
 addEventListener("pointermove", (e) => {
   pointer.tx = (e.clientX / innerWidth) * 2 - 1;
   pointer.ty = (e.clientY / innerHeight) * 2 - 1;
@@ -17,8 +53,12 @@ function createStage(el, { fov, pos, look, exposure = 1.05 }) {
   const canvas = el.querySelector("canvas");
   let renderer;
   try {
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
-  } catch (err) { el.classList.add("is-fallback"); return null; }
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "low-power" });
+  } catch (err) {
+    console.warn("[DevCodeArena] WebGL indisponível; a versão estática da cena será exibida.", err);
+    el.classList.add("is-fallback");
+    return null;
+  }
 
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -54,7 +94,7 @@ function createStage(el, { fov, pos, look, exposure = 1.05 }) {
   const resize = () => {
     const w = el.clientWidth, h = el.clientHeight;
     if (!w || !h) return;
-    renderer.setPixelRatio(Math.min(devicePixelRatio, w < 520 ? 1.5 : 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, w < 520 ? 1.25 : 1.5));
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.fov = fov * (camera.aspect < 0.9 ? 1.25 : 1);
@@ -112,7 +152,7 @@ function buildCodeSymbol() {
 
 /* ---------- Material técnico da mão: corpo escuro + brilho nas bordas + linhas de varredura ---------- */
 const handUniforms = { uTime: { value: 0 } };
-const handLight = { value: 0 }, noLight = { value: 0 }, rimInk = { value: new THREE.Color(0x1669b6) };   // 0 = escuro, 1 = claro (só a mão usa)
+const handLight = { value: 0 }, noLight = { value: 0 };   // 0 = escuro, 1 = claro (só a mão usa)
 /* Paleta por tema: corpo escuro + arestas luminosas azul -> ciano, a mesma linguagem do Coliseu */
 const PALETTE = {
   /* e1/e2: arestas do </>. h1/h2: curvas de nível da mão. rim: contorno de tinta (só no claro).
@@ -121,7 +161,6 @@ const PALETTE = {
   light: { hand: 0x1d4fc9, sym: 0x14307a, glow: 0x60a5fa, e1: 0x38bdf8, e2: 0xf0f9ff, h1: 0x38bdf8, h2: 0xf0f9ff, rim: 0x0a1a4a, rough: 0.38, metal: 0.1, lineOp: 0.9, fx: 0x1669b6, scan: 0x84cc16, add: false },
   dark: { hand: 0x0b1426, sym: 0x0b1426, glow: 0x3b82f6, e1: 0x2563eb, e2: 0xe2e8f0, h1: 0x2563eb, h2: 0xe2e8f0, rim: 0x3b82f6, rough: 0.5, metal: 0.35, lineOp: 0.7, fx: 0x60a5fa, scan: 0xa3e635, add: true },
 };
-const glowU = { value: new THREE.Color(0x3b82f6) };
 const themeNow = () => (document.documentElement.dataset.theme === "dark" ? PALETTE.dark : PALETTE.light);
 
 /* corpo escuro metálico + brilho de borda (fresnel) + varredura; uCut esconde a malha além de um plano (efeito de scanner) */
@@ -277,6 +316,7 @@ function initHeroScene() {
       const model = gltf.scene;
       fitHand(model, orient, root, wrist, cfg.rot, cfg.scale);
       root.position.set(...cfg.off);
+      el.classList.remove("is-fallback");
       const tech = handMat;
       model.traverse((o) => { if (o.isMesh) { o.material = tech; o.castShadow = true; handMeshes.push(o); o.frustumCulled = false;
         const geo = o.geometry;
@@ -301,7 +341,11 @@ function initHeroScene() {
       intro();
     },
     undefined,
-    (err) => { console.warn("[DevCodeArena] static/models/hand.glb ausente ou inválido. Nenhuma mão será exibida.", err); intro(); }
+    (err) => {
+      console.warn("[DevCodeArena] static/models/hand.glb ausente ou inválido. A versão estática será exibida.", err);
+      el.classList.add("is-fallback");
+      intro();
+    }
   );
 
   /* efeitos de materialização: ondas de pulso e partículas saindo da palma */
@@ -508,13 +552,14 @@ function initArenaScene() {
   const { scene } = stage;
 
   const key = new THREE.DirectionalLight(0xbfdcff, 1.8);
-  key.position.set(8, 14, 9); key.castShadow = true; key.shadow.mapSize.set(1024, 1024);
+  key.position.set(8, 14, 9); key.castShadow = true; key.shadow.mapSize.set(512, 512);
   Object.assign(key.shadow.camera, { left: -12, right: 12, top: 12, bottom: -12, near: 1, far: 40 }); key.shadow.bias = -0.0005;
   scene.add(key);
   const rim = new THREE.DirectionalLight(0x00e5ff, 2.4); rim.position.set(-9, 5, -8); scene.add(rim);
 
   const colosseum = buildColosseum();
   scene.add(colosseum);
+  el.classList.remove("is-fallback");
   const { scan, scanMat, TOP } = colosseum.userData;
   colosseum.rotation.y = -0.5;
 
@@ -527,5 +572,26 @@ function initArenaScene() {
   };
 }
 
-initHeroScene();
-initArenaScene();
+const scenes = document.querySelectorAll(".scene");
+if (navigator.connection?.saveData || !("IntersectionObserver" in window)) {
+  scenes.forEach((scene) => scene.classList.add("is-fallback"));
+} else {
+  const sceneObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting || entry.intersectionRatio < 0.65) return;
+      observer.unobserve(entry.target);
+      const initialize = entry.target.id === "hero-scene" ? initHeroScene : initArenaScene;
+      loadSceneModules()
+        .then(() => entry.target.id === "hero-scene"
+          ? loadGsap().catch((error) => {
+            console.warn("[DevCodeArena] GSAP indisponível; a animação 3D seguirá sem a sequência GSAP.", error);
+          }).then(initialize)
+          : initialize())
+        .catch((error) => {
+          entry.target.classList.add("is-fallback");
+          console.error("[DevCodeArena] Não foi possível carregar a cena 3D.", error);
+        });
+    });
+  }, { rootMargin: "0px 0px -35% 0px", threshold: 0.65 });
+  scenes.forEach((scene) => sceneObserver.observe(scene));
+}

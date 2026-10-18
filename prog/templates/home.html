@@ -1,26 +1,28 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}DevCodeArena — Desafios de programação e oportunidades | Prog.{% endblock %}
+{% block meta_description %}Resolva desafios reais de programação, mostre seu talento com entregas práticas e conecte-se a empresas que avaliam habilidades pelo trabalho.{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/home.css' %}?v=28">
+<link rel="stylesheet" href="{% static 'css/home.css' %}?v=29">
 <script type="importmap">
 { "imports": {
   "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
   "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"
 } }
 </script>
+<link rel="modulepreload" href="{% static 'js/home_motion.js' %}?v=4">
 {% endblock %}
 
 {% block content %}
-<section class="hero">
+<section class="hero" aria-labelledby="home-title">
   <div class="container hero__grid">
     <div class="hero__copy">
       <p class="hero__tag" aria-label="DevCodeArena, plataforma da Prog.">
         <span class="hero__tag-icon" aria-hidden="true">{}</span>
         <span class="hero__tag-brand"><strong>DevCodeArena</strong><span>plataforma da</span><strong>Prog.</strong></span>
       </p>
-      <h1 class="hero__title"><span class="hero__title-highlight">DevCode</span>Arena</h1>
+      <h1 class="hero__title" id="home-title"><span class="hero__title-highlight">DevCode</span>Arena</h1>
       <p class="hero__headline">Desafios reais. Talento em evidência.</p>
       <p class="hero__lead">Resolva desafios reais, mostre seu talento na prática e construa conexões profissionais. Empresas acompanham suas entregas e podem convidar você para conversar.</p>
       {% if not account_type %}
@@ -61,7 +63,7 @@
     </div>
 
     <div class="scene scene--hand" id="hero-scene"
-         role="img" aria-label="Uma mão tridimensional sob a arena, que paira sobre ela"
+         role="img" aria-label="Ilustração complementar da arena digital de programação"
          data-hand-src="{% static 'models/hand.glb' %}" data-hand-rig="{% static 'models/hand_rig.bin' %}" data-hand-rotation="0,180,0" data-hand-scale="1.5"
          data-hand-offset="0,0.5,-0.5" data-symbol-pos="0,1.85,0" data-symbol-scale="0.7">
       <canvas></canvas>
@@ -201,7 +203,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script type="module" src="{% static 'js/home_motion.js' %}?v=2"></script>
-<script type="module" src="{% static 'js/home.js' %}?v=20"></script>
+<script type="module" src="{% static 'js/home_motion.js' %}?v=4"></script>
 {% endblock %}

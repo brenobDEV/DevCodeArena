@@ -62,6 +62,30 @@ class ChallengeFlowTests(PlatformTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "API Challenge")
 
+    def test_company_challenge_management_paginates_large_histories(self):
+        deadline = timezone.now() + timedelta(days=7)
+        Challenge.objects.bulk_create([
+            Challenge(
+                company=self.company,
+                title=f"Desafio {number}",
+                description="Descrição do desafio.",
+                deadline=deadline,
+            )
+            for number in range(25)
+        ])
+        self.login_as(self.company_user)
+
+        first_page = self.client.get(reverse("company_challenge_management"))
+        second_page = self.client.get(reverse("company_challenge_management"), {"page": "2"})
+
+        self.assertEqual(first_page.status_code, 200)
+        self.assertEqual(first_page.context["page_obj"].paginator.count, 26)
+        self.assertEqual(len(first_page.context["challenges"]), 25)
+        self.assertContains(first_page, 'aria-label="Paginação de resultados"')
+        self.assertEqual(second_page.status_code, 200)
+        self.assertEqual(len(second_page.context["challenges"]), 1)
+        self.assertContains(second_page, "Página 2 de 2")
+
     def test_company_dashboard_aggregates_metrics_correctly(self):
         first_participation = Participation.objects.create(
             challenge=self.challenge,
@@ -628,10 +652,12 @@ class NavigationTests(PlatformTestCase):
         response = self.client.get(reverse("home"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "<title>DevCodeArena — Desafios de programação e oportunidades | Prog.</title>")
+        self.assertContains(response, 'name="description"')
+        self.assertContains(response, 'href="/static/favicon.svg"')
         self.assertContains(response, 'aria-label="DevCodeArena, plataforma da Prog."')
         self.assertContains(response, 'class="brand__mascot-face"')
         self.assertContains(response, 'id="cyber-shell"')
-        self.assertContains(response, '<h1 class="hero__title"><span class="hero__title-highlight">DevCode</span>Arena</h1>')
+        self.assertContains(response, '<h1 class="hero__title" id="home-title"><span class="hero__title-highlight">DevCode</span>Arena</h1>')
         self.assertContains(response, '<p class="hero__headline">Desafios reais. Talento em evidência.</p>')
         self.assertContains(response, "Criar perfil DEV")
         self.assertContains(response, "Criar perfil de empresa")
@@ -650,6 +676,8 @@ class NavigationTests(PlatformTestCase):
         self.assertContains(response, 'id="arena-scene"')
         self.assertContains(response, "three.module.js")
         self.assertContains(response, "home_motion.js")
+        self.assertContains(response, "home_motion.js?v=4")
+        self.assertNotContains(response, "gsap.min.js")
 
     def test_login_page_offers_both_account_types(self):
         response = self.client.get(reverse("login"), {"next": "/desafios/"})
@@ -694,3 +722,11 @@ class NavigationTests(PlatformTestCase):
         self.assertContains(response, reverse("challenge_periods"))
         self.assertContains(response, reverse("logout"))
         self.assertNotContains(response, reverse("conversation_list"))
+
+    def test_unconfigured_social_links_do_not_point_to_placeholder_urls(self):
+        response = self.client.get(reverse("home"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "github.com/Prog.")
+        self.assertNotContains(response, "linkedin.com/company/prog.")
+        self.assertNotContains(response, "instagram.com/prog.")

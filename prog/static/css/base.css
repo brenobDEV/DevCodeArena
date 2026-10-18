@@ -1,39 +1,39 @@
 /* DevCodeArena — base.css: tokens, temas, cabeçalho, menu, botões, modal, rodapé */
 :root, [data-theme="light"] {
   /* paleta oficial (Figma) */
-  --text: #0f172a;
+  --text: #172033;
   --border: #e2e8f0;
   --accent: #65a30d;       /* verde-limão escuro (preenchimentos, realces) */
   --accent-soft: #84cc16;  /* versão um pouco mais viva, para texto/ícones sobre fundo escuro ou petróleo */
   --accent-ink: #3f6212;   /* o mesmo destaque, escuro, para TEXTO sobre fundo claro */
   --logo-dot: #ff6b35;     /* ponto do logo */
-  --focus: #1669b6;
-  --interact: #1669b6;
-  --trust: #0e5e81;
-  --bg: #f8fafc;
+  --focus: #2563eb;
+  --interact: #2563eb;
+  --trust: #0b7185;
+  --bg: #f6f8fc;
   /* aplicação (derivados da paleta) */
-  --muted: #475569;
-  --hero-from: #e2e8f0;
+  --muted: #586579;
+  --hero-from: #edf2f8;
   --hero-to: #ffffff;
-  --header-bg: #0e5e81;
+  --header-bg: #101827;
   --header-fg: #f8fafc;
-  --menu-bg: #0e5e81;
-  --card-bg: #0f172a;
-  --card-fg: #f8fafc;
-  --card-muted: #94a3b8;
-  --card-border: #0f172a;
-  --card-shadow: 0 10px 24px rgba(15, 23, 42, .28);
-  --strip-bg: #e2e8f0;
-  --rule: rgba(15, 23, 42, .4);
-  --footer-bg: #0e5e81;
+  --menu-bg: #101827;
+  --card-bg: #ffffff;
+  --card-fg: #172033;
+  --card-muted: #586579;
+  --card-border: #e2e8f0;
+  --card-shadow: 0 18px 48px rgba(15, 23, 42, .08);
+  --strip-bg: #edf2f8;
+  --rule: rgba(15, 23, 42, .12);
+  --footer-bg: #101827;
   --footer-fg: #f8fafc;
-  --dots: rgba(15, 23, 42, .16);
-  --link: #1669b6;
-  --btn2-bg: #0f172a; --btn2-fg: #f8fafc; --btn2-border: #0f172a;
+  --dots: rgba(15, 23, 42, .08);
+  --link: #1d4ed8;
+  --btn2-bg: #101827; --btn2-fg: #f8fafc; --btn2-border: #101827;
   --surface: #ffffff;
   --surface-raised: #ffffff;
   --surface-glass: rgba(255, 255, 255, .82);
-  --shadow-soft: 0 18px 48px rgba(15, 23, 42, .08);
+  --shadow-soft: 0 24px 64px rgba(15, 23, 42, .12);
 }
 [data-theme="dark"] {
   --text: #f8fafc;
@@ -44,34 +44,36 @@
   --logo-dot: #ff6b35;
   --focus: #00e5ff;
   --interact: #2563eb;
-  --trust: #00e5ff;
-  --bg: #0a0d14;
-  --muted: #94a3b8;
-  --hero-from: #1e293b;
-  --hero-to: #0a0d14;
-  --header-bg: #0a0d14;
+  --trust: #22d3ee;
+  --bg: #0b1220;
+  --muted: #9aa9bd;
+  --hero-from: #111d30;
+  --hero-to: #0b1220;
+  --header-bg: #0b1220;
   --header-fg: #f8fafc;
-  --menu-bg: #131926;
-  --card-bg: #131926;
+  --menu-bg: #111b2c;
+  --card-bg: #111b2c;
   --card-fg: #f8fafc;
-  --card-muted: #94a3b8;
-  --card-border: #1e293b;
+  --card-muted: #aab6c7;
+  --card-border: #263449;
   --card-shadow: none;
-  --strip-bg: #0e131d;
-  --rule: #1e293b;
-  --footer-bg: #0a0d14;
+  --strip-bg: #101a2a;
+  --rule: #263449;
+  --footer-bg: #0b1220;
   --footer-fg: #f8fafc;
-  --dots: rgba(248, 250, 252, .08);
-  --link: #00e5ff;
+  --dots: rgba(248, 250, 252, .055);
+  --link: #67e8f9;
   --btn2-bg: transparent; --btn2-fg: #f8fafc; --btn2-border: #f8fafc;
-  --surface: #131926;
-  --surface-raised: #171e2d;
-  --surface-glass: rgba(10, 13, 20, .88);
-  --shadow-soft: 0 20px 52px rgba(0, 0, 0, .2);
+  --surface: #111b2c;
+  --surface-raised: #162235;
+  --surface-glass: rgba(11, 18, 32, .9);
+  --shadow-soft: 0 24px 64px rgba(0, 0, 0, .28);
 }
 
 html { scroll-behavior: smooth; scroll-padding-top: 88px; }
-body { margin: 0; background: radial-gradient(ellipse at 50% -30rem, color-mix(in srgb,var(--trust) 8%,transparent),transparent 68%),var(--bg); color: var(--text); font-family: "Inter", system-ui, sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+html[data-theme="light"] { color-scheme: light; }
+html[data-theme="dark"] { color-scheme: dark; }
+body { min-width: 320px; margin: 0; background: radial-gradient(ellipse at 50% -30rem, color-mix(in srgb,var(--trust) 6%,transparent),transparent 68%),var(--bg); color: var(--text); font-family: "Inter", system-ui, sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
 h1, h2, h3 { font-family: "Syne", "Inter", sans-serif; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
 a { color: inherit; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 6px; }
@@ -167,7 +169,7 @@ a { color: inherit; }
 .channel-modal .modal-header, .channel-modal .modal-footer { border-color: rgba(148, 163, 184, .25); gap: .75rem; }
 .channel-modal .modal-title { font-size: 1.4rem; flex: 1; margin: 0; }
 .channel-modal__icon { font-size: 1.5rem; color: var(--accent-soft); }
-.channel-modal .btn-close { filter: invert(1); }
+[data-theme="dark"] .channel-modal .btn-close { filter: invert(1); }
 .channel-modal__desc { color: var(--card-muted); margin: 0; }
 .channel-modal__pending { color: var(--card-muted); font-size: .9rem; }
 .channel-modal .btn-dca--ghost { color: var(--card-muted); }
@@ -197,6 +199,23 @@ a { color: inherit; }
 .site-footer__top { text-decoration: none; font-weight: 600; }
 .site-footer__top:hover { color: var(--accent-soft); }
 .site-footer__mark { font: 800 clamp(3rem, 14vw, 12rem)/.78 "Syne", sans-serif; letter-spacing: .02em; text-align: center; color: rgba(248, 250, 252, .06); white-space: nowrap; user-select: none; margin-bottom: -.12em; pointer-events: none; }
+
+.site-header { box-shadow: 0 6px 24px rgba(2, 6, 23, .1); }
+.site-header__inner { min-height: 72px; }
+.site-footer { border-top-color: color-mix(in srgb, var(--footer-fg) 12%, transparent); }
+.site-footer__cta { background: linear-gradient(135deg, rgba(37, 99, 235, .14), rgba(15, 23, 42, .32)); }
+.btn-dca { min-height: 46px; border-radius: 10px; font-weight: 650; letter-spacing: -.01em; }
+.btn-dca:focus-visible, .icon-btn:focus-visible, .social__btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.settings-menu { border-color: color-mix(in srgb, var(--header-fg) 13%, transparent); }
+.settings-menu__list a, .settings-menu__list button { min-height: 42px; }
+.social__btn { border-color: color-mix(in srgb, var(--text) 35%, transparent); }
+
+@media (max-width: 575px) {
+  .site-header__inner { height: 64px; }
+  .brand { font-size: 1.55rem; }
+  .brand__mascot { width: 3.25rem; height: 2.9rem; }
+  .icon-btn { width: 42px; height: 42px; }
+}
 @media (max-width: 991px) { .site-footer__grid { grid-template-columns: 1fr 1fr; } .site-footer__about { grid-column: 1 / -1; } }
 @media (max-width: 575px) { .site-footer__grid { grid-template-columns: 1fr; } .site-footer__bar { flex-direction: column; align-items: flex-start; } }
 
