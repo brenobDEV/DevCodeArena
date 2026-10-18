@@ -689,3 +689,95 @@ class NavigationTests(PlatformTestCase):
         self.assertContains(response, reverse("challenge_periods"))
         self.assertContains(response, reverse("logout"))
         self.assertNotContains(response, reverse("conversation_list"))
+
+
+#-------------------------------------tony :>---------------------------------------------
+
+
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.test import TestCase
+from django.urls import reverse
+
+from .models import Perfil, PerfilDesenvolvedor, PerfilEmpresa, PerfilFavorito
+from .services import criar_perfil
+
+User = get_user_model()
+
+
+class PerfilTests(TestCase):
+    def setUp(self):
+        self.dev = User.objects.create_user(
+            username="dev", password="Senha123!segura"
+        )
+        self.empresa = User.objects.create_user(
+            username="empresa", password="Senha123!segura"
+        )
+
+    def test_criar_desenvolvedor(self):
+        perfil = criar_perfil(
+            self.dev, Perfil.Tipo.DESENVOLVEDOR, "Dev Teste"
+        )
+        self.assertTrue(PerfilDesenvolvedor.objects.filter(perfil=perfil).exists())
+        self.assertFalse(PerfilEmpresa.objects.filter(perfil=perfil).exists())
+
+    def test_criar_empresa(self):
+        perfil = criar_perfil(
+            self.empresa, Perfil.Tipo.EMPRESA, "Empresa",
+            nome_empresa="Empresa Teste"
+        )
+        self.assertTrue(PerfilEmpresa.objects.filter(perfil=perfil).exists())
+
+    def test_impede_perfil_duplicado(self):
+        criar_perfil(self.dev, Perfil.Tipo.DESENVOLVEDOR, "Dev")
+        with self.assertRaises(ValidationError):
+            criar_perfil(self.dev, Perfil.Tipo.EMPRESA, "Empresa",
+                         nome_empresa="Empresa")
+
+    def test_impede_tipo_invalido(self):
+        with self.assertRaises(ValidationError):
+            criar_perfil(self.dev, "XXX", "Inválido")
+
+    def test_lista_perfis(self):
+        criar_perfil(self.dev, Perfil.Tipo.DESENVOLVEDOR, "Dev")
+        resposta = self.client.get(reverse("perfis:listar"))
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, "Dev")
+
+    def test_perfil_privado_nao_aparece_para_visitante(self):
+        perfil = criar_perfil(
+            self.dev, Perfil.Tipo.DESENVOLVEDOR, "Privado"
+        )
+        perfil.publico = False
+        perfil.save()
+
+        resposta = self.client.get(
+            reverse("perfis:detalhe", kwargs={"pk": perfil.pk})
+        )
+        self.assertEqual(resposta.status_code, 404)
+
+    def test_edicao_exige_login(self):
+        resposta = self.client.get(reverse("perfis:editar"))
+        self.assertEqual(resposta.status_code, 302)
+
+    def test_favoritar_perfil_de_outra_pessoa(self):
+        perfil_dev = criar_perfil(
+            self.dev, Perfil.Tipo.DESENVOLVEDOR, "Dev"
+        )
+        criar_perfil(
+            self.empresa, Perfil.Tipo.EMPRESA, "Empresa",
+            nome_empresa="Empresa"
+        )
+
+        self.client.force_login(self.empresa)
+        resposta = self.client.post(
+            reverse("perfis:alternar_favorito", kwargs={"pk": perfil_dev.pk})
+        )
+
+        self.assertEqual(resposta.status_code, 302)
+        self.assertTrue(
+            PerfilFavorito.objects.filter(
+                usuario=self.empresa, perfil=perfil_dev
+            ).exists()
+        )
+#-------------------------------------tony :>---------------------------------------------
