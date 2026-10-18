@@ -1,0 +1,115 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-br" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>{% block title %}DevCodeArena{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}?v=19">
+  {% block extra_head %}{% endblock %}
+  <script defer src="{% static 'js/base.js' %}?v=10"></script>
+</head>
+<body>
+<a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+<header class="site-header{% if user.is_authenticated %} site-header--authenticated{% endif %}">
+  <div class="site-header__inner{% if user.is_authenticated %} site-header__inner--authenticated{% endif %}">
+    <span class="site-header__side" aria-hidden="true"></span>
+    <a class="brand" href="{{ nav.home }}" aria-label="Prog., página inicial">
+      <svg class="brand__mascot" viewBox="0 0 64 56" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="cyber-shell" x1="0" y1="0" x2="1" y2="1">
+            <stop stop-color="#26374d" />
+            <stop offset=".55" stop-color="#111d2b" />
+            <stop offset="1" stop-color="#080e18" />
+          </linearGradient>
+          <linearGradient id="cyber-top" x1="0" y1="0" x2="1" y2="1">
+            <stop stop-color="#91f5ff" />
+            <stop offset="1" stop-color="#1689b7" />
+          </linearGradient>
+          <filter id="cyber-glow" x="-.6" y="-.6" width="2.2" height="2.2">
+            <feGaussianBlur stdDeviation="2.2" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+        </defs>
+        <ellipse class="brand__mascot-shadow" cx="32" cy="51" rx="16" ry="2.5" />
+        <g class="brand__mascot-core">
+          <path class="brand__mascot-side" d="M11 19 31 8v32L11 29z" />
+          <path class="brand__mascot-face" d="m31 8 22 11v20L31 49z" />
+          <path class="brand__mascot-top" d="M11 19 31 8l22 11-22 12z" />
+          <path class="brand__mascot-seam" d="m31 31 22-12" />
+          <path class="brand__mascot-panel" d="m34 25 4-2m-4 2 4 2m8-4-4 2 4 2" />
+          <g class="brand__mascot-visor">
+            <path d="M34 31h12v8H34z" />
+            <path class="brand__mascot-eye" d="M36 34h2v2h-2zm6 0h2v2h-2z" />
+          </g>
+          <circle class="brand__mascot-status" cx="49" cy="28" r="1.5" />
+        </g>
+        <path class="brand__mascot-spark" d="m8 11 1.4 3.6L13 16l-3.6 1.4L8 21l-1.4-3.6L3 16l3.6-1.4z" />
+        <path class="brand__mascot-spark brand__mascot-spark--small" d="m56 8 .9 2.1L59 11l-2.1.9L56 14l-.9-2.1L53 11l2.1-.9z" />
+      </svg>
+      <span class="brand__word" aria-hidden="true"><span>P</span><span>r</span><span>o</span><span>g</span><span class="brand__dot">.</span></span>
+    </a>
+    {% if user.is_authenticated %}
+    <nav class="authenticated-nav" aria-label="Navegação principal">
+      <a href="{{ nav.challenges }}" {% if request.resolver_match.url_name == "challenge_periods" or request.resolver_match.url_name == "challenge_list" or request.resolver_match.url_name == "challenge_detail" %}aria-current="page"{% endif %}><i class="bi bi-code-square" aria-hidden="true"></i> Desafios</a>
+      {% if account_type %}<a href="{{ nav.chats }}" {% if request.resolver_match.url_name == "conversation_list" or request.resolver_match.url_name == "conversation_detail" %}aria-current="page"{% endif %}><i class="bi bi-chat-dots" aria-hidden="true"></i> Conversas</a>{% endif %}
+      <a href="{{ nav.leaderboard }}" {% if request.resolver_match.url_name == "leaderboard" %}aria-current="page"{% endif %}><i class="bi bi-trophy" aria-hidden="true"></i> Ranking</a>
+      {% if account_type == "company" %}<a href="{{ nav.company_panel }}" {% if request.resolver_match.url_name == "company_dashboard" %}aria-current="page"{% endif %}><i class="bi bi-grid" aria-hidden="true"></i> Painel</a>{% endif %}
+    </nav>
+    {% endif %}
+    <div class="site-header__actions">
+      <button type="button" class="icon-btn theme-toggle" data-theme-toggle aria-label="Alternar tema claro e escuro" aria-pressed="true">
+        <i class="bi bi-sun-fill icon-sun" aria-hidden="true"></i>
+        <i class="bi bi-moon-stars-fill icon-moon" aria-hidden="true"></i>
+      </button>
+      {% block settings_menu %}
+      <div class="dropdown">
+        <button type="button" class="icon-btn icon-btn--gear" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Abrir menu da conta"><i class="bi bi-person-circle" aria-hidden="true"></i></button>
+        <div class="dropdown-menu dropdown-menu-end settings-menu">
+          <div class="settings-menu__who">{% if account_profile and account_profile.avatar %}<img class="settings-menu__avatar settings-menu__avatar--photo" src="{{ account_profile.avatar.url }}" alt="">{% else %}<i class="bi bi-person-circle settings-menu__avatar" aria-hidden="true"></i>{% endif %}<span class="settings-menu__name">{% if user.is_authenticated %}{{ user.get_username }}{% else %}Visitante{% endif %}</span></div>
+          <ul class="settings-menu__list">
+            {% if account_type == "developer" %}
+              <li><a href="{{ nav.profile }}">Meu perfil</a></li><li><a href="{{ nav.solutions }}">Minhas soluções</a></li>
+            {% elif account_type == "company" %}
+              <li><a href="{{ nav.company_panel }}">Painel empresarial</a></li><li><a href="{{ nav.challenge_new }}">Criar desafio</a></li><li><a href="{{ nav.company_challenges }}">Gerenciar desafios</a></li>
+            {% elif user.is_authenticated %}
+              <li><a href="{{ nav.challenges }}">Desafios</a></li><li><a href="{{ nav.leaderboard }}">Ranking</a></li>
+            {% else %}
+              <li><a href="{{ nav.login_dev }}">Entrar como desenvolvedor</a></li><li><a href="{{ nav.login_company }}">Entrar como empresa</a></li><li><a href="{{ nav.signup }}">Criar conta</a></li>
+            {% endif %}
+            {% if user.is_authenticated %}<li><form method="post" action="{{ nav.logout }}">{% csrf_token %}<button type="submit">Sair</button></form></li>{% endif %}
+          </ul>
+        </div>
+      </div>
+      {% endblock %}
+    </div>
+  </div>
+</header>
+<main id="conteudo">
+  {% if messages %}<div class="container platform-flashes" aria-live="polite">{% for message in messages %}<div class="platform-flash platform-flash--{{ message.tags|default:'info' }}" role="status">{{ message }}</div>{% endfor %}</div>{% endif %}
+  {% block content %}{% endblock %}
+</main>
+{% block site_footer %}
+<footer class="site-footer">
+  {% if not account_type %}<div class="container"><div class="site-footer__cta"><div><p class="site-footer__eyebrow">&lt;/&gt; comece agora</p><h2 class="site-footer__cta-title">Pronto para mostrar seu código?</h2></div><div class="site-footer__cta-actions"><a class="btn-dca btn-dca--primary" href="{{ nav.signup_dev }}">Sou DEV</a><a class="btn-dca btn-dca--light" href="{{ nav.signup_company }}">Sou empresa</a></div></div></div>{% endif %}
+  <div class="container site-footer__grid">
+    <div class="site-footer__about"><p class="site-footer__brand">DevCodeArena</p><p class="site-footer__text">Desafios de programação inspirados em problemas reais. Habilidades em primeiro lugar.</p><ul class="social social--footer" aria-label="Canais de contato">{% for ch in channels %}<li><button type="button" class="social__btn" data-bs-toggle="modal" data-bs-target="#channel-modal" data-name="{{ ch.name }}" data-desc="{{ ch.desc }}" data-url="{{ ch.url }}" data-icon="{{ ch.icon }}" aria-label="{{ ch.name }}"><i class="bi bi-{{ ch.icon }}" aria-hidden="true"></i></button></li>{% endfor %}</ul></div>
+    <nav class="site-footer__col" aria-labelledby="f-plat"><h2 id="f-plat">Plataforma</h2><ul>{% if user.is_authenticated %}<li><a href="{{ nav.challenges }}">Desafios</a></li><li><a href="{{ nav.leaderboard }}">Ranking</a></li>{% if account_type %}<li><a href="{{ nav.chats }}">Conversas</a></li>{% endif %}{% else %}<li><a href="{{ nav.home }}#como-funciona">Como funciona</a></li><li><a href="{{ nav.home }}#arena">Uma arena, dois caminhos</a></li>{% endif %}</ul></nav>
+    <nav class="site-footer__col" aria-labelledby="f-dev"><h2 id="f-dev">Para devs</h2><ul><li><a href="{{ nav.login_dev }}">Entrar</a></li><li><a href="{{ nav.signup_dev }}">Criar conta</a></li></ul></nav>
+    <nav class="site-footer__col" aria-labelledby="f-emp"><h2 id="f-emp">Para empresas</h2><ul><li><a href="{{ nav.login_company }}">Entrar</a></li><li><a href="{{ nav.signup_company }}">Criar conta</a></li></ul></nav>
+  </div>
+  <div class="container site-footer__bar"><p>© {% now "Y" %} Prog. Todos os direitos reservados.</p><a class="site-footer__top" href="#conteudo">Voltar ao topo <i class="bi bi-arrow-up" aria-hidden="true"></i></a></div>
+  <div class="site-footer__mark" aria-hidden="true">DevCodeArena</div>
+</footer>
+{% endblock %}
+<div class="modal fade channel-modal" id="channel-modal" tabindex="-1" aria-labelledby="channel-modal-title" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><i class="bi channel-modal__icon" aria-hidden="true"></i><h2 class="modal-title" id="channel-modal-title"></h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div><div class="modal-body"><p class="channel-modal__desc"></p></div><div class="modal-footer"><button type="button" class="btn-dca btn-dca--ghost" data-bs-dismiss="modal">Fechar</button><a class="btn-dca btn-dca--primary channel-modal__open" target="_blank" rel="noopener noreferrer">Abrir canal</a><span class="channel-modal__pending" hidden>Endereço ainda não configurado.</span></div></div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

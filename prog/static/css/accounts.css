@@ -1,0 +1,63 @@
+/* DevCodeArena — accounts.css: login, cadastro e escolha de conta */
+.auth { padding: clamp(2rem, 6vw, 4.5rem) 0; background: linear-gradient(180deg, var(--hero-from) 34%, var(--hero-to) 50%); min-height: calc(100svh - 69px); display: grid; align-content: center; align-items: center; }
+.auth__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: clamp(1rem, 3vw, 2rem); max-width: 1040px; margin-inline: auto; }
+.auth__panel { position: relative; overflow: hidden; border-radius: 20px; padding: clamp(1.5rem, 3vw, 2.5rem); color: #f8fafc; display: flex; flex-direction: column; justify-content: flex-end; gap: .9rem; min-height: 420px; background-image: radial-gradient(rgba(248, 250, 252, .16) 1.2px, transparent 1.4px); background-size: 20px 20px; }
+.auth--dev .auth__panel { background-color: #0f4f94; box-shadow: inset 0 -160px 140px -60px #0f172a; }
+.auth--empresa .auth__panel { background-color: #0b4d6b; box-shadow: inset 0 -160px 140px -60px #0f172a; }
+[data-theme="dark"] .auth--dev .auth__panel { background-color: #1d4ed8; box-shadow: inset 0 -160px 140px -60px #0a0d14; }
+[data-theme="dark"] .auth--empresa .auth__panel { background-color: #0e5e81; box-shadow: inset 0 -160px 140px -60px #0a0d14; }
+.auth__badge { align-self: flex-start; font: 600 .78rem ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: .1em; padding: .3rem .7rem; border: 1px solid rgba(248, 250, 252, .5); border-radius: 999px; position: absolute; top: clamp(1.5rem, 3vw, 2.5rem); left: clamp(1.5rem, 3vw, 2.5rem); }
+.auth__glyph { font: 700 clamp(3.5rem, 8vw, 6rem)/1 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; color: #d9f99d; margin: 0; }
+.auth__title { font-size: clamp(1.7rem, 3.2vw, 2.4rem); margin: 0; }
+.auth__text { margin: 0; color: rgba(248, 250, 252, .85); max-width: 38ch; }
+
+.auth__card { background: var(--card-bg); color: var(--card-fg); border: 1px solid var(--card-border); border-radius: 20px; box-shadow: var(--card-shadow); padding: clamp(1.5rem, 3vw, 2.4rem); }
+.auth__tabs { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem; padding: .3rem; border-radius: 12px; background: rgba(148, 163, 184, .16); margin-bottom: 1.5rem; }
+.auth__tabs a { text-align: center; text-decoration: none; padding: .6rem .5rem; border-radius: 9px; font-weight: 600; font-size: .95rem; color: var(--card-muted); transition: background .2s, color .2s; }
+.auth__tabs a:hover { color: var(--card-fg); }
+.auth__tabs a.is-active { background: var(--accent); color: #0f172a; }
+.auth__heading { font-size: 1.5rem; margin: 0 0 1.1rem; }
+.auth__form { display: grid; gap: 1rem; }
+.auth__alert { padding: .7rem .9rem; border-radius: 10px; background: rgba(248, 113, 113, .14); border: 1px solid rgba(248, 113, 113, .5); color: #fecaca; font-size: .92rem; }
+.auth__alert p { margin: 0; }
+.auth__submit { width: 100%; margin-top: .4rem; }
+.auth__switch { margin: 1.25rem 0 0; color: var(--card-muted); font-size: .95rem; text-align: center; }
+.auth__switch a { color: #7dd3fc; font-weight: 600; }
+[data-theme="dark"] .auth__switch a { color: var(--accent-soft); }
+.auth__switch--center { color: var(--muted); margin-top: 2rem; }
+.auth__switch--center a { color: var(--interact); }
+[data-theme="dark"] .auth__switch--center a { color: var(--accent-soft); }
+
+.field { display: grid; gap: .4rem; }
+.field__label { font-size: .88rem; font-weight: 500; color: var(--card-muted); }
+.field__control { position: relative; }
+.field__input { width: 100%; min-height: 48px; padding: 0 1rem; border-radius: 10px; border: 1.5px solid rgba(148, 163, 184, .62); background: rgba(248, 250, 252, .06); color: var(--card-fg); font: inherit; transition: border-color .2s, background .2s, box-shadow .2s; }
+.field__input::placeholder { color: rgba(148, 163, 184, .7); }
+.field__input:hover { border-color: rgba(148, 163, 184, .9); }
+.field__input:focus { outline: none; border-color: var(--accent-soft); background: rgba(248, 250, 252, .1); box-shadow: 0 0 0 3px rgba(132, 204, 22, .35); }
+.field--error .field__input { border-color: #f87171; }
+.field__error { margin: 0; color: #fca5a5; font-size: .85rem; }
+.field__toggle { position: absolute; right: .35rem; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border: 0; background: transparent; color: var(--card-muted); border-radius: 8px; cursor: pointer; }
+.field__toggle:hover { color: var(--card-fg); }
+.field__control:has(.field__toggle) .field__input { padding-right: 3rem; }
+.auth__card :focus-visible { outline-color: var(--accent-soft); }
+
+/* Escolha do tipo de conta */
+.auth--choose .auth__intro { text-align: center; margin-bottom: 2rem; }
+.auth--choose .auth__title { color: var(--text); font-size: clamp(2rem, 4vw, 3rem); }
+.auth--choose .auth__text { color: var(--muted); margin-inline: auto; }
+.choose { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; max-width: 880px; margin-inline: auto; }
+.choose__card { display: flex; flex-direction: column; gap: .7rem; padding: clamp(1.5rem, 3vw, 2.2rem); border-radius: 20px; text-decoration: none; color: #f8fafc; background-color: #0f172a; border: 1px solid transparent; box-shadow: var(--card-shadow); transition: transform .25s, border-color .25s; }
+[data-theme="dark"] .choose__card { background-color: #131926; border-color: #1e293b; }
+.choose__card:hover { transform: translateY(-4px); border-color: var(--accent-soft); color: #f8fafc; }
+.choose__card--dev { border-top: 4px solid #1669b6; }
+.choose__card--company { border-top: 4px solid #0e5e81; }
+.choose__glyph { font: 700 2.6rem/1 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; color: var(--accent-soft); }
+.choose__card h2 { font-size: 1.6rem; margin: 0; }
+.choose__card p { margin: 0; color: #94a3b8; }
+.choose__go { margin-top: auto; padding-top: .6rem; font-weight: 600; color: #7dd3fc; display: inline-flex; gap: .4rem; align-items: center; }
+[data-theme="dark"] .choose__go { color: var(--accent-soft); }
+.choose__go i { transition: transform .2s; }
+.choose__card:hover .choose__go i { transform: translateX(4px); }
+
+@media (max-width: 860px) { .auth__grid, .choose { grid-template-columns: 1fr; } .auth__panel { min-height: 300px; } }

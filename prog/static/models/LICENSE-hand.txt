@@ -1,0 +1,10 @@
+Modelo 3D da mão (static/models/hand.glb)
+
+Original : "jointed hands BJD"
+Autor    : zacko (https://sketchfab.com/zacko)
+Fonte    : https://sketchfab.com/3d-models/jointed-hands-bjd-25da42bebf7b4f70994e9f8f0e9fe1c5
+Licença  : CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+
+Alterações feitas pelo projeto DevCodeArena: extraída uma das três mãos, girada para a palma
+ficar voltada para cima, simplificada (de ~173 MB para ~1,7 MB) e acrescentado um ponto de
+ancoragem "PalmAnchor" no centro da palma. A atribuição ao autor deve permanecer visível no site.
