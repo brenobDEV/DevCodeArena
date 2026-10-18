@@ -47,8 +47,11 @@ Abra http://127.0.0.1:8000/ no navegador. Acesse o Django Admin em /admin/ depoi
 - O produto atual é focado em desafios individuais para demonstrar habilidades e aproximar empresas e desenvolvedores. Não há equipes, etapas ou gestão de eventos de hackathon, nem projetos freelance com propostas, contratos ou pagamentos.
 - Esta versão não executa código enviado por usuários, não fornece isolamento de execução, não possui WebSockets nem integração externa de recrutamento.
 - A classificação atual é uma soma simples e global das notas avaliadas. Não há histórico por período nem detecção de fraude.
-- Antes de produção: defina `DJANGO_SECRET_KEY` com uma chave nova e privada, `DJANGO_DEBUG=False` e `DJANGO_ALLOWED_HOSTS=seu-dominio.com` no ambiente de execução. A aplicação recusa iniciar em modo de produção sem chave e hosts configurados. A chave que já esteve versionada deve ser considerada comprometida e rotacionada; não a reutilize. Configure HTTPS, backups, política de retenção de dados pessoais e revise a segurança. Não apague db.sqlite3 para aplicar migrations.
+- Antes de produção: defina `DJANGO_SECRET_KEY` com uma chave nova e privada, `DJANGO_DEBUG=False` e `DJANGO_ALLOWED_HOSTS=seu-dominio.com` no ambiente de execução. A aplicação recusa iniciar em modo de produção sem chave e hosts configurados. A chave que já esteve versionada deve ser considerada comprometida e rotacionada; não a reutilize. Cookies seguros e redirecionamento HTTPS são ativados por padrão em produção. Se um proxy confiável terminar o HTTPS, ajuste `DJANGO_TRUST_X_FORWARDED_PROTO=True` somente se ele sobrescrever o cabeçalho `X-Forwarded-Proto`; caso o proxy cuide do redirecionamento, configure `DJANGO_SECURE_SSL_REDIRECT=False`. Defina `DJANGO_SECURE_HSTS_SECONDS` gradualmente após confirmar HTTPS em todo o domínio. Configure backups, política de retenção de dados pessoais e revise a segurança. Não apague db.sqlite3 para aplicar migrations.
 - Fotos enviadas ficam em `MEDIA_ROOT` (por padrão, `media/`, ignorada pelo Git). Em desenvolvimento o Django as serve quando `DEBUG=True`; em produção configure armazenamento persistente e a entrega de `MEDIA_URL` no servidor ou em um serviço de mídia antes de habilitar uploads.
+- Em produção, execute `python manage.py collectstatic` para gerar os arquivos em `STATIC_ROOT` (`staticfiles/`) e configure o servidor para servi-los. Configure `DJANGO_EMAIL_HOST`, `DJANGO_EMAIL_PORT`, `DJANGO_EMAIL_USERNAME` e `DJANGO_EMAIL_PASSWORD` para o SMTP do provedor; `DJANGO_EMAIL_USE_TLS` e `DJANGO_EMAIL_USE_SSL` aceitam `True`/`False` (não habilite ambos). Em desenvolvimento, o backend de e-mail continua sendo o console.
+- Os links públicos são opcionais e configurados por ambiente: `DCA_GITHUB_URL`, `DCA_LINKEDIN_URL`, `DCA_INSTAGRAM_URL` e `DCA_CONTACT_EMAIL`. Sem valores oficiais, os canais aparecem como não configurados, sem apontar para endereços fictícios.
+- Para testes de implantação, `python manage.py check --deploy` também exige configurações de HTTPS/HSTS adequadas ao proxy e ao domínio do provedor; não copie valores de produção para o ambiente local sem validar o efeito.
 
 ## Testes
 
@@ -57,6 +60,7 @@ Os testes automatizados cobrem listagem, inscrição única, bloqueio de papéis
 
 ## Versão unificada (home + backend)
 
+- Otimização 3D: o módulo das cenas só é carregado quando uma cena se aproxima da área visível; Three.js, modelos, renderizadores e GSAP são buscados sob demanda. As cenas pausam fora da tela, limitam a resolução e usam alternativa estática para economia de dados ou movimento reduzido.
 - Home: arena em CSS com a **mão 3D segurando um `</>` girando** logo abaixo; **coliseu 3D** em "Uma arena, dois caminhos"; seções com fundos e divisores próprios.
 - `home.js` (three.js + GSAP) é separado de `home_motion.js` (reveal/tilt): se o CDN falhar, a página segue funcionando e as cenas mostram um fallback após 8 s.
 - Páginas de desafios (`/desafios/…`) exigem login; visitantes vão para `/entrar/?next=…`. Para torná-las públicas de novo, remova `@login_required` de `challenge_periods`, `challenge_list` e `challenge_detail` em `views_platform.py`.

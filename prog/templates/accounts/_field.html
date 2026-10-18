@@ -6,5 +6,6 @@
     <button type="button" class="field__toggle js-toggle-password" aria-label="Mostrar senha" aria-pressed="false" data-target="{{ field.id_for_label }}"><i class="bi bi-eye" aria-hidden="true"></i></button>
     {% endif %}
   </div>
-  {% for e in field.errors %}<p class="field__error" role="alert">{{ e }}</p>{% endfor %}
+  {% if field.help_text %}<p class="field__help" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>{% endif %}
+  {% for e in field.errors %}<p class="field__error" id="{{ field.id_for_label }}_error" role="alert">{{ e }}</p>{% endfor %}
 </div>

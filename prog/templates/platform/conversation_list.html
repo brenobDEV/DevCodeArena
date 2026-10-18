@@ -2,5 +2,32 @@
 {% block title %}Conversas — DevCodeArena{% endblock %}
 {% block content %}
 <section class="platform-page"><div class="container"><header class="platform-hero platform-hero--compact"><div><p class="eyebrow">CONTATO COM CONTEXTO</p><h1>Conversas.</h1><p>Os contatos são habilitados após uma seleção autorizada em um desafio.</p></div></header>
-<div class="conversation-list">{% for conversation in conversations %}<a class="conversation-row" href="{% url 'conversation_detail' conversation.pk %}"><span class="conversation-avatar">{% if account_type == "company" and conversation.developer.avatar %}<img class="conversation-avatar__photo" src="{{ conversation.developer.avatar.url }}" alt="">{% elif account_type != "company" and conversation.company.avatar %}<img class="conversation-avatar__photo" src="{{ conversation.company.avatar.url }}" alt="">{% else %}<i class="bi bi-{% if account_type == 'company' %}person{% else %}building{% endif %}" aria-hidden="true"></i>{% endif %}</span><span class="conversation-row__main"><strong>{% if account_type == "company" %}{{ conversation.developer.public_name }}{% else %}{{ conversation.company.public_name }}{% endif %}</strong><span>{% if conversation.challenge %}{{ conversation.challenge.title }}{% else %}Contato direto{% endif %}</span><small>{% if conversation.last_message_body %}{{ conversation.last_message_body|truncatechars:90 }}{% else %}Conversa iniciada. Envie a primeira mensagem.{% endif %}</small></span><span class="conversation-row__date">{% if conversation.unread_count %}<span class="pill pill--open">{{ conversation.unread_count }} não lida{{ conversation.unread_count|pluralize:"s" }}</span>{% endif %}{{ conversation.updated_at|date:"d/m/Y H:i" }}<i class="bi bi-chevron-right" aria-hidden="true"></i></span></a>{% empty %}<div class="empty-state"><span class="empty-state__icon"><i class="bi bi-chat-square-text" aria-hidden="true"></i></span><h3>Nenhuma conversa ainda</h3><p>{% if account_type == "company" %}Avalie uma submissão e selecione um desenvolvedor para habilitar uma conversa.{% else %}Quando uma empresa selecionar sua solução, a conversa aparecerá aqui.{% endif %}</p>{% if account_type == "company" %}<a class="btn-dca btn-dca--primary" href="{% url 'company_challenge_management' %}">Ver meus desafios</a>{% else %}<a class="btn-dca btn-dca--primary" href="{% url 'challenge_list' %}">Explorar desafios</a>{% endif %}</div>{% endfor %}</div></div></section>
+<div class="conversation-list">
+  {% for conversation in conversations %}
+    <a class="conversation-row" href="{% url 'conversation_detail' conversation.pk %}">
+      <span class="conversation-avatar">
+        {% if account_type == "company" and conversation.developer.avatar %}
+          <img class="conversation-avatar__photo" src="{{ conversation.developer.avatar.url }}" alt="">
+        {% elif account_type != "company" and conversation.company.avatar %}
+          <img class="conversation-avatar__photo" src="{{ conversation.company.avatar.url }}" alt="">
+        {% else %}
+          <i class="bi bi-{% if account_type == 'company' %}person{% else %}building{% endif %}" aria-hidden="true"></i>
+        {% endif %}
+      </span>
+      <span class="conversation-row__main">
+        <strong>{% if account_type == "company" %}{{ conversation.developer.public_name }}{% else %}{{ conversation.company.public_name }}{% endif %}</strong>
+        <span>{% if conversation.challenge %}{{ conversation.challenge.title }}{% else %}Contato direto{% endif %}</span>
+        <small>{% if conversation.last_message_body %}{{ conversation.last_message_body|truncatechars:90 }}{% else %}Conversa iniciada. Envie a primeira mensagem.{% endif %}</small>
+      </span>
+      <span class="conversation-row__date">
+        {% if conversation.unread_count %}<span class="pill pill--open">{{ conversation.unread_count }} não lida{{ conversation.unread_count|pluralize:"s" }}</span>{% endif %}
+        {{ conversation.updated_at|date:"d/m/Y H:i" }}<i class="bi bi-chevron-right" aria-hidden="true"></i>
+      </span>
+    </a>
+  {% empty %}
+    <div class="empty-state"><span class="empty-state__icon"><i class="bi bi-chat-square-text" aria-hidden="true"></i></span><h3>Nenhuma conversa ainda</h3><p>{% if account_type == "company" %}Avalie uma submissão e selecione um desenvolvedor para habilitar uma conversa.{% else %}Quando uma empresa selecionar sua solução, a conversa aparecerá aqui.{% endif %}</p>{% if account_type == "company" %}<a class="btn-dca btn-dca--primary" href="{% url 'company_challenge_management' %}">Ver meus desafios</a>{% else %}<a class="btn-dca btn-dca--primary" href="{% url 'challenge_list' %}">Explorar desafios</a>{% endif %}</div>
+  {% endfor %}
+</div>
+{% include "platform/_pagination.html" %}
+</div></section>
 {% endblock %}

@@ -48,7 +48,23 @@ if (!motionPreference.matches) {
   }
 }
 
-/* Se o three.js (CDN) não subir em 8 s, mostra o símbolo estático em vez de um quadro vazio. */
+const scenes = document.querySelectorAll(".scene");
+if (motionPreference.matches || navigator.connection?.saveData || !("IntersectionObserver" in window)) {
+  scenes.forEach((scene) => scene.classList.add("is-fallback"));
+} else if (scenes.length) {
+  const sceneLoader = new IntersectionObserver((entries, observer) => {
+    if (!entries.some((entry) => entry.isIntersecting)) return;
+    observer.disconnect();
+    import("./home.js?v=22").catch((error) => {
+      scenes.forEach((scene) => scene.classList.add("is-fallback"));
+      console.error("[DevCodeArena] Não foi possível carregar o módulo 3D; a versão estática será exibida.", error);
+    });
+  }, { rootMargin: "0px" });
+  scenes.forEach((scene) => sceneLoader.observe(scene));
+}
+
 setTimeout(() => {
-  document.querySelectorAll(".scene").forEach((el) => { if (!el.dataset.ready) el.classList.add("is-fallback"); });
+  scenes.forEach((scene) => {
+    if (!scene.dataset.ready) scene.classList.add("is-fallback");
+  });
 }, 8000);

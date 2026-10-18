@@ -16,6 +16,10 @@ from .models import Challenge, Conversation, Message, Participation, Submission
 from .models_accounts import Profile
 
 
+def _paginate(request, objects, per_page=25):
+    return Paginator(objects, per_page).get_page(request.GET.get("page"))
+
+
 def _profile(request, required_type=None):
     profile = getattr(request.user, "dca_profile", None)
     if not profile or (required_type and profile.tipo != required_type):
@@ -77,8 +81,8 @@ def challenge_list(request):
             | Q(company__user__first_name__icontains=query)
         )
     ordering_map = {"deadline": "deadline", "newest": "-created_at", "reward": "-reward"}
-    page_obj = Paginator(challenges.order_by(ordering_map.get(ordering, "deadline"), "title"), 9).get_page(
-        request.GET.get("page")
+    page_obj = _paginate(
+        request, challenges.order_by(ordering_map.get(ordering, "deadline"), "title"), 9
     )
     return render(request, "platform/challenge_list.html", {
         "page_obj": page_obj, "period_choices": Challenge.PERIOD_CHOICES,
@@ -164,8 +168,11 @@ def developer_submissions(request):
         return HttpResponseForbidden("Esta página é exclusiva para desenvolvedores.")
     participations = Participation.objects.filter(developer=profile).select_related(
         "challenge", "challenge__company__user", "submission"
-    )
-    return render(request, "platform/my_submissions.html", {"participations": participations})
+    ).order_by("-joined_at")
+    page_obj = _paginate(request, participations)
+    return render(request, "platform/my_submissions.html", {
+        "participations": page_obj, "page_obj": page_obj,
+    })
 
 
 @login_required
@@ -274,7 +281,10 @@ def company_challenge_management(request):
         participant_count=Count("participations", distinct=True),
         submission_count=Count("participations__submission", distinct=True),
     ).order_by("-updated_at")
-    return render(request, "platform/company_challenge_management.html", {"challenges": challenges})
+    page_obj = _paginate(request, challenges)
+    return render(request, "platform/company_challenge_management.html", {
+        "challenges": page_obj, "page_obj": page_obj,
+    })
 
 
 @login_required
@@ -286,8 +296,9 @@ def company_challenge_manage(request, challenge_id):
     participations = Participation.objects.filter(challenge=challenge).select_related(
         "developer__user", "submission"
     ).order_by("-joined_at")
+    page_obj = _paginate(request, participations)
     return render(request, "platform/company_challenge_manage.html", {
-        "challenge": challenge, "participations": participations,
+        "challenge": challenge, "participations": page_obj, "page_obj": page_obj,
     })
 
 
@@ -371,7 +382,10 @@ def conversation_list(request):
             distinct=True,
         ),
     ).order_by("-updated_at")
-    return render(request, "platform/conversation_list.html", {"conversations": conversations})
+    page_obj = _paginate(request, conversations)
+    return render(request, "platform/conversation_list.html", {
+        "conversations": page_obj, "page_obj": page_obj,
+    })
 
 
 @login_required
@@ -411,4 +425,7 @@ def leaderboard(request):
         reviewed_count=Count("participations__submission", filter=reviewed, distinct=True),
         completed_count=Count("participations__challenge", filter=reviewed, distinct=True),
     ).order_by("-total_score", "-completed_count", "created_at")
-    return render(request, "platform/leaderboard.html", {"profiles": profiles})
+    page_obj = _paginate(request, profiles)
+    return render(request, "platform/leaderboard.html", {
+        "profiles": page_obj, "page_obj": page_obj,
+    })

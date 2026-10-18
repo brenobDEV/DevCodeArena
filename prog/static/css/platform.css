@@ -258,6 +258,31 @@
 .candidate-identity>div { display:grid; gap:.2rem; }
 .candidate-identity__photo { display:grid; flex:0 0 auto; width:2.8rem; aspect-ratio:1; place-items:center; overflow:hidden; border:1px solid var(--border); border-radius:50%; object-fit:cover; }
 .candidate-identity__photo--fallback { background:color-mix(in srgb,var(--interact) 10%,var(--surface)); color:var(--interact); font-size:1.1rem; }
+
+.platform-page { padding-top:clamp(2.25rem,5vw,4rem); }
+.platform-hero { margin-bottom:clamp(.5rem,1.5vw,1.25rem); }
+.challenge-card,.period-card,.metric-card,.content-panel,.table-panel,.filter-panel { box-shadow:var(--shadow-soft); }
+.challenge-card,.period-card { transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease; }
+.challenge-card:hover,.period-card:hover { transform:translateY(-3px); border-color:color-mix(in srgb,var(--interact) 40%,var(--border)); box-shadow:0 18px 38px color-mix(in srgb,var(--text) 9%,transparent); }
+.filter-panel { border-radius:18px; }
+.filter-field input,.filter-field select,.field__input { min-height:46px; border-radius:10px; }
+.content-panel,.table-panel,.chat-panel { border-radius:18px; }
+.table-panel { overflow:hidden; padding:0; }
+.table-panel .responsive-table { overflow-x:auto; }
+.responsive-table table { margin-bottom:0; }
+.responsive-table th { color:var(--muted); font-size:.76rem; font-weight:700; letter-spacing:.045em; text-transform:uppercase; white-space:nowrap; }
+.responsive-table td { vertical-align:middle; }
+.responsive-table tbody tr:last-child td { border-bottom:0; }
+.chat-messages { scroll-behavior:smooth; }
+
+@media (max-width:720px) {
+  .platform-page { padding-block:1.75rem 3rem; }
+  .section-heading { align-items:flex-start; }
+  .table-panel { padding:0; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .challenge-card,.period-card,.chat-messages { scroll-behavior:auto; transition:none; }
+}
 @media (max-width:1000px) {
  .profile-editor { grid-template-columns:minmax(0,1fr) minmax(240px,.72fr); gap:.9rem; }
  .challenge-hero { grid-template-columns:minmax(0,1fr) minmax(0,.9fr); gap:1rem; }

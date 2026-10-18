@@ -12,7 +12,7 @@
     {% include "platform/_challenge_hero_visual.html" %}
   </header>
   <div class="challenge-catalog-intro"><div><p class="eyebrow">PERSONALIZE SUA BUSCA</p><h2>Encontre o desafio certo para você</h2></div><p>Combine ciclo, linguagem, tecnologia e dificuldade. Você pode ajustar os filtros a qualquer momento.</p></div>
-  <form class="filter-panel" method="get">
+  <form class="filter-panel" method="get" aria-label="Filtrar desafios">
     <div class="filter-field filter-field--search"><label for="id_q">Buscar</label><input id="id_q" type="search" name="q" value="{{ filters.q }}" placeholder="Nome ou descrição do desafio"></div>
     <div class="filter-field"><label for="id_period">Ciclo</label><select id="id_period" name="period"><option value="">Todos</option>{% for value,label in period_choices %}<option value="{{ value }}" {% if filters.period == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
     <div class="filter-field"><label for="id_language">Linguagem</label><input id="id_language" name="language" value="{{ filters.language }}" placeholder="Ex.: Python"></div>
