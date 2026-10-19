@@ -1,0 +1,25 @@
+{% extends "base_authenticated.html" %}
+{% block title %}Ranking — DevCodeArena{% endblock %}
+{% block content %}
+<section class="platform-page"><div class="container"><header class="platform-hero platform-hero--compact"><div><p class="eyebrow">PONTUAÇÃO COM BASE EM AVALIAÇÕES</p><h1>Quem está fazendo acontecer.</h1><p>Classificação calculada no servidor pela soma das notas das submissões avaliadas. Notas pendentes não contam.</p></div></header>
+<div class="table-panel">
+  {% if profiles %}
+    <div class="responsive-table"><table><thead><tr><th>Posição</th><th>Desenvolvedor</th><th>Desafios avaliados</th><th>Pontuação total</th></tr></thead>
+      <tbody>
+        {% for profile in profiles %}
+          {% with rank=page_obj.start_index|add:forloop.counter0 %}
+            <tr>
+              <td><span class="rank-position {% if rank <= 3 %}rank-position--top{% endif %}">{% if rank == 1 %}<i class="bi bi-trophy-fill" aria-label="Primeiro lugar"></i>{% elif rank == 2 %}<i class="bi bi-award" aria-label="Segundo lugar"></i>{% elif rank == 3 %}<i class="bi bi-award" aria-label="Terceiro lugar"></i>{% else %}{{ rank }}{% endif %}</span></td>
+              <td><strong>{{ profile.public_name }}</strong></td><td>{{ profile.reviewed_count }}</td><td><strong>{{ profile.total_score|floatformat:2 }}</strong></td>
+            </tr>
+          {% endwith %}
+        {% endfor %}
+      </tbody>
+    </table></div>
+    {% include "platform/_pagination.html" %}
+  {% else %}
+    <div class="empty-state"><span class="empty-state__icon"><i class="bi bi-trophy" aria-hidden="true"></i></span><h3>O ranking começa com uma avaliação</h3><p>Quando empresas avaliarem submissões, a classificação aparecerá aqui. Nenhuma pontuação é inventada.</p><a class="btn-dca btn-dca--outline" href="{% url 'challenge_list' %}">Ver desafios</a></div>
+  {% endif %}
+</div><p class="ranking-note"><i class="bi bi-info-circle" aria-hidden="true"></i> Regra de classificação: soma das notas avaliadas (0–100), com desempate por quantidade de desafios avaliados e data de cadastro. Não há ainda ranking histórico por período.</p>
+</div></section>
+{% endblock %}
