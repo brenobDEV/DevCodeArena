@@ -3,6 +3,7 @@ from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Count, OuterRef, Q, Subquery, Sum
 from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
@@ -339,11 +340,12 @@ def company_select_developer(request, participation_id):
     if not submission or not submission.is_reviewed:
         messages.error(request, "Avalie a submissão antes de iniciar um contato de seleção.")
         return redirect("company_challenge_manage", challenge_id=participation.challenge_id)
-    participation.status = Participation.STATUS_SELECTED
-    participation.save(update_fields=["status", "updated_at"])
-    Conversation.objects.get_or_create(
-        company=profile, developer=participation.developer, challenge=participation.challenge
-    )
+    with transaction.atomic():
+        participation.status = Participation.STATUS_SELECTED
+        participation.save(update_fields=["status", "updated_at"])
+        Conversation.objects.get_or_create(
+            company=profile, developer=participation.developer, challenge=participation.challenge
+        )
     messages.success(request, "Desenvolvedor selecionado. A conversa foi habilitada.")
     return redirect("company_challenge_manage", challenge_id=participation.challenge_id)
 
@@ -402,12 +404,13 @@ def conversation_detail(request, conversation_id):
     ).update(read_at=timezone.now())
     form = MessageForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        message = form.save(commit=False)
-        message.conversation = conversation
-        message.sender = profile
-        message.save()
-        conversation.updated_at = timezone.now()
-        conversation.save(update_fields=["updated_at"])
+        with transaction.atomic():
+            message = form.save(commit=False)
+            message.conversation = conversation
+            message.sender = profile
+            message.save()
+            conversation.updated_at = timezone.now()
+            conversation.save(update_fields=["updated_at"])
         return redirect("conversation_detail", conversation_id=conversation.pk)
     conversation_messages = conversation.messages.select_related("sender__user").order_by("created_at")
     return render(request, "platform/conversation_detail.html", {
