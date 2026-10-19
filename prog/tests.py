@@ -534,6 +534,52 @@ class ConversationSecurityTests(PlatformTestCase):
         self.assertTrue(Message.objects.filter(conversation=conversation, body="Olá, equipe!").exists())
 
 
+class DeveloperSelectionTests(PlatformTestCase):
+    def setUp(self):
+        super().setUp()
+        self.participation = Participation.objects.create(
+            challenge=self.challenge, developer=self.developer,
+        )
+
+    def test_company_can_select_developer_after_review_and_open_one_conversation(self):
+        Submission.objects.create(
+            participation=self.participation,
+            repository_url="https://github.com/example/solution",
+            score=Decimal("87.50"),
+            reviewed_at=timezone.now(),
+        )
+        self.login_as(self.company_user)
+        url = reverse("company_select_developer", args=[self.participation.pk])
+
+        self.assertEqual(self.client.post(url).status_code, 302)
+        self.assertEqual(self.client.post(url).status_code, 302)
+
+        self.participation.refresh_from_db()
+        self.assertEqual(self.participation.status, Participation.STATUS_SELECTED)
+        self.assertEqual(
+            Conversation.objects.filter(
+                company=self.company, developer=self.developer, challenge=self.challenge,
+            ).count(),
+            1,
+        )
+
+    def test_company_cannot_select_developer_before_review(self):
+        Submission.objects.create(
+            participation=self.participation,
+            repository_url="https://github.com/example/solution",
+        )
+        self.login_as(self.company_user)
+
+        response = self.client.post(
+            reverse("company_select_developer", args=[self.participation.pk])
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.participation.refresh_from_db()
+        self.assertEqual(self.participation.status, Participation.STATUS_REGISTERED)
+        self.assertFalse(Conversation.objects.filter(challenge=self.challenge).exists())
+
+
 class RankingTests(PlatformTestCase):
     def test_ranking_uses_only_reviewed_scores(self):
         participation = Participation.objects.create(challenge=self.challenge, developer=self.developer)

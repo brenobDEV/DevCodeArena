@@ -11,7 +11,11 @@
     root.dataset.bsTheme = t;
     document.querySelectorAll("[data-theme-toggle]").forEach(function (b) {
       b.setAttribute("aria-pressed", String(t === "dark"));
+      b.setAttribute("aria-label", t === "dark" ? "Ativar tema claro" : "Ativar tema escuro");
+      b.setAttribute("title", t === "dark" ? "Ativar tema claro" : "Ativar tema escuro");
     });
+    var themeColor = document.querySelector('meta[name="theme-color"]');
+    if (themeColor) themeColor.setAttribute("content", t === "dark" ? "#080d18" : "#f4f7fc");
     if (persist) { try { localStorage.setItem(KEY, t); } catch (e) {} }   // só grava quando a pessoa clica
     document.dispatchEvent(new CustomEvent("dca:theme", { detail: t }));
   }

@@ -417,3 +417,39 @@
  .period-card,.challenge-card,.management-card,.responsive-table tbody tr { transition:none; }
  .period-card:hover,.challenge-card:hover,.management-card:hover { transform:none; }
 }
+
+.platform-hero h1,.profile-intro h1,.challenge-hero__copy h1 { letter-spacing: -.055em; }
+.platform-hero h1::selection,.section-heading h2::selection { background: color-mix(in srgb, var(--trust) 32%, transparent); }
+.platform-page > .container { position: relative; }
+.platform-hero { padding-top: clamp(1.5rem, 4vw, 3rem); }
+.platform-hero--compact { padding-top: .25rem; }
+.platform-hero .eyebrow,.profile-intro .eyebrow { display: inline-flex; align-items: center; gap: .5rem; padding: .35rem .65rem; border: 1px solid color-mix(in srgb, var(--trust) 22%, var(--border)); border-radius: 999px; background: color-mix(in srgb, var(--trust) 7%, var(--surface)); }
+.section-heading { padding-bottom: .75rem; border-bottom: 1px solid var(--rule); }
+.challenge-card,.period-card,.management-card,.content-panel,.table-panel,.metric-card,.chat-panel,.profile-preview,.profile-tip { border-color: color-mix(in srgb, var(--trust) 12%, var(--border)); }
+.challenge-card:hover,.period-card:hover,.management-card:hover { box-shadow: 0 22px 48px color-mix(in srgb, var(--text) 12%, transparent); }
+.content-panel,.table-panel,.filter-panel,.chat-panel { background-image: linear-gradient(145deg, color-mix(in srgb, var(--trust) 3%, transparent), transparent 46%); }
+.form-field input,.form-field select,.form-field textarea,.filter-field input,.filter-field select { color-scheme: inherit; }
+.form-field input[type="checkbox"],.form-field input[type="radio"],.filter-field input[type="checkbox"],.filter-field input[type="radio"] { accent-color: var(--interact); }
+.form-field textarea,.field__input:is(textarea) { min-height: 120px; resize: vertical; }
+.form-field input:disabled,.form-field select:disabled,.form-field textarea:disabled { opacity: .65; cursor: not-allowed; }
+.responsive-table thead { position: sticky; top: 0; z-index: 1; }
+.responsive-table tbody tr:last-child td { border-bottom: 0; }
+.metric-card { transition: transform .2s ease, border-color .2s ease; }
+.metric-card:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--interact) 38%, var(--border)); }
+.profile-avatar,.conversation-avatar { box-shadow: 0 8px 22px color-mix(in srgb, var(--interact) 12%, transparent); }
+.empty-state__icon { display: grid; place-items: center; border-radius: 14px; background: color-mix(in srgb, var(--interact) 8%, var(--surface)); color: var(--interact); }
+.pagination-bar .btn-dca { min-width: 120px; }
+.chat-compose textarea { min-height: 48px; }
+.chat-message { overflow-wrap: anywhere; }
+.platform-flash--success { color: color-mix(in srgb, #166534 88%, var(--text)); }
+[data-theme="dark"] .platform-flash--success { color: #bbf7d0; }
+
+@media (max-width: 720px) {
+  .platform-hero { padding-top: .5rem; }
+  .section-heading { flex-direction: column; }
+  .profile-intro__badge { align-self: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .metric-card { transition: none; }
+  .metric-card:hover { transform: none; }
+}

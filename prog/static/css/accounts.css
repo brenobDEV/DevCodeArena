@@ -100,3 +100,34 @@
   .choose__card:hover { transform:none; }
   .auth__glyph,.auth--empresa .auth__glyph,.auth__panel::after { animation:none !important; }
 }
+
+.auth__panel { border-color: color-mix(in srgb, var(--trust) 32%, rgba(248, 250, 252, .2)); }
+.auth--dev .auth__panel { background-image: radial-gradient(rgba(248, 250, 252, .15) 1.2px, transparent 1.4px), radial-gradient(ellipse at 20% 0%, rgba(56, 189, 248, .3), transparent 55%), linear-gradient(145deg, rgba(37, 99, 235, .96), #101c31 90%); }
+.auth--empresa .auth__panel { background-image: radial-gradient(rgba(248, 250, 252, .15) 1.2px, transparent 1.4px), radial-gradient(ellipse at 20% 0%, rgba(132, 204, 22, .2), transparent 55%), linear-gradient(145deg, #0e5e81, #101c31 90%); }
+.auth__card { position: relative; overflow: hidden; }
+.auth__card::before { position: absolute; top: 0; left: 1.5rem; right: 1.5rem; height: 2px; border-radius: 0 0 3px 3px; background: linear-gradient(90deg, transparent, var(--trust), var(--interact), transparent); content: ""; opacity: .75; }
+.auth__heading { letter-spacing: -.035em; }
+.auth__tabs a.is-active { background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 92%, #fff), var(--accent)); }
+.field__input { min-height: 52px; }
+.field__input:focus { border-color: var(--interact); box-shadow: 0 0 0 4px color-mix(in srgb, var(--interact) 17%, transparent); }
+.field__toggle { transition: color .18s, background .18s; }
+.field__toggle:hover { background: color-mix(in srgb, var(--interact) 9%, transparent); }
+.auth__submit { min-height: 52px; }
+.choose__card { isolation: isolate; min-height: 286px; border-color: color-mix(in srgb, var(--trust) 24%, var(--border)); background: radial-gradient(ellipse at 100% 0%, color-mix(in srgb, var(--trust) 24%, transparent), transparent 52%), linear-gradient(145deg, #14253a, #0b1424 78%); }
+.choose__card::after { position: absolute; z-index: -1; right: -4rem; bottom: -7rem; width: 15rem; aspect-ratio: 1; border: 1px solid rgba(125, 211, 252, .15); border-radius: 50%; box-shadow: 0 0 0 1.5rem rgba(125, 211, 252, .035), 0 0 0 3rem rgba(125, 211, 252, .025); content: ""; pointer-events: none; }
+.choose__card:hover { transform: translateY(-6px); border-color: var(--accent-soft); box-shadow: 0 24px 52px rgba(2, 8, 23, .24), 0 0 0 1px color-mix(in srgb, var(--accent-soft) 18%, transparent); }
+.choose__card--dev { border-top: 3px solid #38bdf8; }
+.choose__card--company { border-top: 3px solid #a3e635; }
+.choose__card p { color: #b6c4d8; }
+.choose__go { color: #7dd3fc; }
+.choose__card--company .choose__go { color: #bef264; }
+.choose__glyph { text-shadow: 0 0 24px color-mix(in srgb, var(--accent-soft) 30%, transparent); }
+
+@media (max-width: 520px) {
+  .choose__card { min-height: 240px; }
+  .auth__card::before { left: 1.25rem; right: 1.25rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .choose__card { transition: none; }
+  .choose__card:hover { transform: none; }
+}
