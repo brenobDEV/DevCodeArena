@@ -1,0 +1,102 @@
+.brand {
+  position: relative;
+  isolation: isolate;
+  transform-style: preserve-3d;
+  transition: transform 240ms ease;
+}
+
+.brand::before,
+.brand::after {
+  position: absolute;
+  z-index: -1;
+  content: "";
+  pointer-events: none;
+  opacity: 0;
+}
+
+.brand::before {
+  inset: 18% 8%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse,
+    rgba(0, 229, 255, .62),
+    rgba(101, 163, 13, .2) 48%,
+    transparent 76%
+  );
+  filter: blur(13px);
+}
+
+.brand::after {
+  z-index: 1;
+  inset: 0;
+  border-radius: 10px;
+  background: linear-gradient(
+    108deg,
+    transparent 34%,
+    rgba(156, 243, 255, .06) 43%,
+    rgba(196, 251, 255, .72) 50%,
+    rgba(156, 243, 255, .08) 57%,
+    transparent 66%
+  );
+  clip-path: inset(0 round 10px);
+}
+
+.brand:hover,
+.brand:focus-visible {
+  transform: perspective(700px) translateY(-1px) rotateX(2deg);
+}
+
+.brand:hover::before,
+.brand:focus-visible::before {
+  opacity: 1;
+  animation: brand-aura-pulse 1.8s ease-in-out infinite;
+}
+
+.brand:hover::after,
+.brand:focus-visible::after {
+  animation: brand-shine 850ms cubic-bezier(.2, .7, .2, 1) both;
+}
+
+.brand:hover .brand__mascot,
+.brand:focus-visible .brand__mascot {
+  filter:
+    drop-shadow(0 3px 3px rgba(0, 0, 0, .3))
+    drop-shadow(0 0 9px rgba(0, 229, 255, .68));
+}
+
+.brand:hover .brand__word,
+.brand:focus-visible .brand__word {
+  text-shadow: 0 0 18px rgba(103, 232, 249, .48);
+}
+
+@keyframes brand-aura-pulse {
+  0%, 100% { transform: scale(.94); opacity: .62; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+
+@keyframes brand-shine {
+  from { transform: translateX(-110%); opacity: 0; }
+  15% { opacity: 1; }
+  to { transform: translateX(110%); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand {
+    transition: none;
+  }
+
+  .brand::before,
+  .brand::after {
+    animation: none !important;
+  }
+
+  .brand:hover,
+  .brand:focus-visible {
+    transform: none;
+  }
+
+  .brand:hover::before,
+  .brand:focus-visible::before {
+    opacity: .55;
+  }
+}

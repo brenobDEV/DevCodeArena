@@ -1,0 +1,17 @@
+{% extends "base_authenticated.html" %}
+{% block title %}{% if is_edit %}Editar{% else %}Criar{% endif %} desafio — DevCodeArena{% endblock %}
+{% block content %}
+<section class="platform-page"><div class="container form-page"><a class="back-link" href="{% url 'company_challenge_management' %}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Gerenciar desafios</a><header class="platform-hero platform-hero--compact"><div><p class="eyebrow">GESTÃO DE DESAFIOS</p><h1>{% if is_edit %}Ajuste seu desafio.{% else %}Defina o desafio.{% endif %}</h1><p>Inclua o que os participantes precisam construir e como as soluções serão avaliadas.</p></div></header>
+<form method="post" class="content-panel platform-form">{% csrf_token %}{% if form.non_field_errors %}<div class="platform-flash platform-flash--error">{% for error in form.non_field_errors %}{{ error }}{% endfor %}</div>{% endif %}
+{% for field in form %}<div class="form-field {% if field.name == 'description' or field.name == 'requirements' or field.name == 'evaluation_criteria' %}form-field--wide{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>{% endfor %}
+<div class="form-actions"><button class="btn-dca btn-dca--outline" name="action" value="draft" type="submit">Salvar rascunho</button><button class="btn-dca btn-dca--primary" name="action" value="publish" type="submit"><i class="bi bi-send" aria-hidden="true"></i> Publicar desafio</button></div>
+</form></div></section>
+{% endblock %}
+{% block extra_js %}
+<script>
+/* Enter num campo de uma linha enviava o formulário pelo 1º botão ("Salvar rascunho") sem a pessoa perceber. Agora só os botões enviam. */
+document.querySelectorAll(".platform-form input").forEach(function (input) {
+  input.addEventListener("keydown", function (e) { if (e.key === "Enter") e.preventDefault(); });
+});
+</script>
+{% endblock %}

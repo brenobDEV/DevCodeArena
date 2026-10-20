@@ -1,0 +1,25 @@
+{% extends "base_authenticated.html" %}
+{% block title %}Gerenciar desafios — DevCodeArena{% endblock %}
+{% block content %}
+<section class="platform-page"><div class="container"><header class="platform-hero platform-hero--compact"><div><p class="eyebrow">CONTROLE DE PUBLICAÇÕES</p><h1>Seus desafios, suas regras.</h1><p>Edite rascunhos, gerencie prazos e acompanhe as soluções recebidas.</p></div><a class="btn-dca btn-dca--primary" href="{% url 'company_challenge_create' %}"><i class="bi bi-plus-lg" aria-hidden="true"></i> Novo desafio</a></header>
+<div class="challenge-management-list">
+  {% for challenge in challenges %}
+    <article class="management-card">
+      <div class="management-card__main">
+        <div class="challenge-card__top"><span class="pill">{{ challenge.get_period_display }}</span><span class="pill {% if challenge.status == 'published' %}pill--open{% elif challenge.status == 'closed' %}pill--closed{% endif %}">{{ challenge.get_status_display }}</span><span class="pill pill--{{ challenge.difficulty }}">{{ challenge.get_difficulty_display }}</span></div>
+        <h2>{{ challenge.title }}</h2><p>{{ challenge.description|truncatechars:150 }}</p>
+        <div class="challenge-tags"><span><i class="bi bi-people" aria-hidden="true"></i> {{ challenge.participant_count }} participantes</span><span><i class="bi bi-file-earmark-code" aria-hidden="true"></i> {{ challenge.submission_count }} submissões</span><span><i class="bi bi-clock" aria-hidden="true"></i> Até {{ challenge.deadline|date:"d/m/Y H:i" }}</span></div>
+        {% if challenge.listing_state == "draft" %}<p class="management-card__hint management-card__hint--warn"><i class="bi bi-eye-slash" aria-hidden="true"></i> Rascunho: ainda não aparece para os desenvolvedores. Clique em “Publicar”.</p>
+        {% elif challenge.listing_state == "scheduled" %}<p class="management-card__hint management-card__hint--warn"><i class="bi bi-calendar-event" aria-hidden="true"></i> Agendado: aparece para os desenvolvedores a partir de {{ challenge.start_at|date:"d/m/Y H:i" }}.</p>
+        {% elif challenge.listing_state == "expired" %}<p class="management-card__hint management-card__hint--warn"><i class="bi bi-hourglass-bottom" aria-hidden="true"></i> O prazo já passou: não aparece mais entre os desafios ativos.</p>
+        {% elif challenge.listing_state == "live" %}<p class="management-card__hint"><i class="bi bi-eye" aria-hidden="true"></i> No ar em Desafios {% if challenge.period == "weekly" %}semanais{% else %}mensais{% endif %}.</p>{% endif %}
+      </div>
+      <div class="management-card__actions"><a class="btn-dca btn-dca--outline" href="{% url 'company_challenge_edit' challenge.pk %}">Editar</a><a class="btn-dca btn-dca--primary" href="{% url 'company_challenge_manage' challenge.pk %}">Participantes</a><form method="post" action="{% url 'company_challenge_toggle' challenge.pk %}">{% csrf_token %}<button class="btn-dca btn-dca--ghost" type="submit">{% if challenge.status == "published" %}Retirar do ar{% else %}Publicar{% endif %}</button></form></div>
+    </article>
+  {% empty %}
+    <div class="empty-state"><span class="empty-state__icon"><i class="bi bi-kanban" aria-hidden="true"></i></span><h3>Nenhum desafio cadastrado</h3><p>Os desafios que você criar ou salvar como rascunho aparecerão aqui.</p><a class="btn-dca btn-dca--primary" href="{% url 'company_challenge_create' %}">Criar desafio</a></div>
+  {% endfor %}
+</div>
+{% include "platform/_pagination.html" %}
+</div></section>
+{% endblock %}

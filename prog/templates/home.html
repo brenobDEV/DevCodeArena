@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}DevCodeArena — Desafios de programação e oportunidades | Prog.{% endblock %}
+{% block meta_description %}Resolva desafios reais de programação, mostre seu talento com entregas práticas e conecte-se a empresas que avaliam habilidades pelo trabalho.{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}?v=34">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"
+} }
+</script>
+<link rel="modulepreload" href="{% static 'js/home_motion.js' %}?v=8">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js">
+<link rel="preload" as="fetch" crossorigin href="{% static 'models/hand.glb' %}">
+<link rel="preload" as="fetch" crossorigin href="{% static 'models/hand_rig.bin' %}">
+{% endblock %}
+
+{% block content %}
+<section class="hero" aria-labelledby="home-title">
+  <div class="container hero__grid">
+    <div class="hero__copy">
+      <p class="hero__tag" aria-label="DevCodeArena, plataforma da Prog.">
+        <span class="hero__tag-icon" aria-hidden="true">{}</span>
+        <span class="hero__tag-brand"><strong>DevCodeArena</strong><span>plataforma da</span><strong>Prog.</strong></span>
+      </p>
+      <h1 class="hero__title" id="home-title"><span class="hero__title-highlight">DevCode</span>Arena</h1>
+      <p class="hero__headline">Hackathons que conectam talentos a oportunidades.</p>
+      <p class="hero__lead">Resolva desafios reais, mostre seu talento na prática e construa conexões profissionais. Empresas acompanham suas entregas e podem convidar você para conversar.</p>
+      {% if not account_type %}
+      <div class="hero__actions">
+        <a class="btn-dca btn-dca--primary" href="{{ nav.signup_dev }}">Sou DEV <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        <a class="btn-dca btn-dca--outline" href="{{ nav.signup_company }}">Sou empresa <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="hero-column">
+    <div class="scene scene--hand" id="hero-scene"
+         role="img" aria-label="Mão digital em 3D sustentando o símbolo de código </> em rotação"
+         data-hand-src="{% static 'models/hand.glb' %}" data-hand-rig="{% static 'models/hand_rig.bin' %}" data-hand-rotation="0,180,0" data-hand-scale="1.5"
+         data-hand-offset="0,0.1,-0.5" data-symbol-pos="0,2.3,0" data-symbol-scale="0.7">
+      <canvas></canvas>
+      <div class="scene__fallback" aria-hidden="true">&lt;/&gt;</div>
+    </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider" role="presentation"></div>
+
+<section class="strip" aria-label="Diferenciais da plataforma">
+  <div class="strip__track">
+    <ul class="strip__list">
+      <li>Avaliação focada nas habilidades</li>
+      <li>Desafios baseados em problemas reais</li>
+      <li>Portfólio com entregas práticas</li>
+      <li>Empresas e talentos em conexão</li>
+    </ul>
+    <ul class="strip__list" aria-hidden="true">
+      <li>Avaliação focada nas habilidades</li>
+      <li>Desafios baseados em problemas reais</li>
+      <li>Portfólio com entregas práticas</li>
+      <li>Empresas e talentos em conexão</li>
+    </ul>
+  </div>
+</section>
+
+<div class="divider" role="presentation"></div>
+
+<section class="cards" aria-labelledby="platform-title">
+  <div class="container">
+    <header class="cards__heading home-reveal">
+      <h2 id="platform-title">Seu trabalho fala mais alto.</h2>
+    </header>
+
+    <div class="journey home-reveal">
+      <div class="pillars">
+        <article class="pillar pillar--challenge" id="desafios">
+          <span class="pillar__icon"><i class="bi bi-lightning-charge" aria-hidden="true"></i></span>
+          <p class="pillar__verb">Resolva</p>
+          <h3>Desafios reais</h3>
+          <p>Problemas inspirados no dia a dia das empresas, toda semana e todo mês.</p>
+        </article>
+        <article class="pillar pillar--evaluation">
+          <span class="pillar__icon"><i class="bi bi-clipboard2-check" aria-hidden="true"></i></span>
+          <p class="pillar__verb">Mostre</p>
+          <h3>Entregas avaliadas</h3>
+          <p>A empresa analisa a sua solução e dá uma nota.</p>
+        </article>
+        <article class="pillar pillar--opportunity" id="oportunidades">
+          <span class="pillar__icon"><i class="bi bi-chat-square-heart" aria-hidden="true"></i></span>
+          <p class="pillar__verb">Conecte-se</p>
+          <h3>Conversas profissionais</h3>
+          <p>Se a empresa gostar do que viu, ela chama você para conversar.</p>
+        </article>
+      </div>
+
+      <div class="flow" id="como-funciona">
+        <h3 class="flow__title">Como funciona</h3>
+        <ol class="flow__steps">
+          <li><strong>A empresa publica</strong> um desafio.</li>
+          <li><strong>Você resolve</strong> e envia a solução.</li>
+          <li><strong>A empresa avalia</strong> a sua entrega.</li>
+          <li><strong>Vocês conversam</strong> se houver interesse.</li>
+        </ol>
+        <p class="home__disclaimer"><i class="bi bi-info-circle" aria-hidden="true"></i>A plataforma não faz contratações nem pagamentos; recompensas são definidas pela empresa.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="audiences" id="arena" aria-labelledby="audiences-title">
+  <div class="container">
+    <div class="arena__grid">
+      <header class="audiences__heading home-reveal">
+        <p class="eyebrow">Uma arena, dois caminhos</p>
+        <h2 id="audiences-title">Feita para quem cria e para quem encontra talentos.</h2>
+        <p>Resolva desafios ou descubra talentos pelo que eles entregam.</p>
+        <ul class="social" aria-label="Canais de contato">
+          {% for ch in channels %}
+          <li>
+            <button type="button" class="social__btn" data-bs-toggle="modal" data-bs-target="#channel-modal"
+                    data-name="{{ ch.name }}" data-desc="{{ ch.desc }}" data-url="{{ ch.url }}" data-icon="{{ ch.icon }}"
+                    aria-label="{{ ch.name }}"><i class="bi bi-{{ ch.icon }}" aria-hidden="true"></i></button>
+          </li>
+          {% endfor %}
+        </ul>
+      </header>
+      <div class="scene scene--arena" id="arena-scene" role="img" aria-label="Coliseu tridimensional reinterpretado como arena de desenvolvimento">
+        <canvas></canvas>
+        <div class="scene__fallback" aria-hidden="true"><i class="bi bi-bank2"></i></div>
+      </div>
+    </div>
+    <div class="audience-grid">
+      <article class="audience-card audience-card--dev home-reveal">
+        <span class="audience-card__icon"><i class="bi bi-terminal" aria-hidden="true"></i></span>
+        <p class="eyebrow">PARA DESENVOLVEDORES</p>
+        <h3>Transforme habilidade em oportunidade.</h3>
+        <p>Resolva desafios e mostre seu trabalho às empresas.</p>
+      </article>
+      <article class="audience-card audience-card--company home-reveal">
+        <span class="audience-card__icon"><i class="bi bi-buildings" aria-hidden="true"></i></span>
+        <p class="eyebrow">PARA EMPRESAS</p>
+        <h3>Descubra talento pelo que ele entrega.</h3>
+        <p>Publique um desafio e converse com quem se destacou.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+{% if user.is_authenticated %}
+<section class="next-step">
+  <div class="container next-step__inner home-reveal">
+    {% if account_type == "company" %}
+    <div><p class="eyebrow">Seu próximo passo</p><h2>Publique um desafio e conheça quem resolve.</h2><p>Abra um desafio ou veja as soluções recebidas.</p></div>
+    <div class="next-step__actions"><a class="btn-dca btn-dca--primary" href="{{ nav.challenge_new }}">Criar desafio <i class="bi bi-arrow-right" aria-hidden="true"></i></a><a class="btn-dca btn-dca--outline" href="{{ nav.company_panel }}">Ir para o painel</a></div>
+    {% else %}
+    <div><p class="eyebrow">Seu próximo passo</p><h2>Menos promessa. Mais trabalho que você pode mostrar.</h2><p>Escolha um desafio e envie sua solução.</p></div>
+    <div class="next-step__actions"><a class="btn-dca btn-dca--primary" href="{{ nav.challenges }}">Explorar desafios <i class="bi bi-arrow-right" aria-hidden="true"></i></a>{% if account_type == "developer" %}<a class="btn-dca btn-dca--outline" href="{{ nav.solutions }}">Minhas soluções</a>{% endif %}</div>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script type="module" src="{% static 'js/home_motion.js' %}?v=8"></script>
+{% endblock %}
