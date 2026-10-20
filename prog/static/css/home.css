@@ -122,6 +122,12 @@ html.has-motion .home-reveal:not(.is-visible) { opacity:0; transform:translateY(
   html.has-motion .home-reveal,html.has-motion .home-reveal:not(.is-visible) { opacity:1; transform:none; transition:none; }
 }
 
+/* Permite visualizar as animações quando o usuário solicita explicitamente ?motion=on. */
+html.motion-override .strip__track { animation: marquee 52s linear infinite; will-change:transform; }
+html.motion-override .strip:hover .strip__track { animation-play-state:paused; }
+html.motion-override.has-motion .home-reveal { transition:opacity .4s ease,transform .4s cubic-bezier(.2,.75,.2,1); }
+html.motion-override.has-motion .home-reveal:not(.is-visible) { opacity:0; transform:translateY(12px); }
+
 
 /* ---- Rótulos (a home não carrega platform.css, onde .eyebrow já existia) ---- */
 .eyebrow { margin:0; color:var(--accent-ink); font:700 .75rem/1.5 ui-monospace,"SFMono-Regular",Menlo,monospace; letter-spacing:.11em; text-transform:uppercase; }

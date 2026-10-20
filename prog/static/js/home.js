@@ -1,5 +1,6 @@
 /* DevCodeArena — home.js: cena da mão + </> e Coliseu 3D (Three.js + GSAP) */
-const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches
+  && new URLSearchParams(window.location.search).get("motion") !== "on";
 const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
 let THREE, GLTFLoader, RoomEnvironment, mergeGeometries, createHandRig, rimInk, glowU;
 let sceneModulesPromise;

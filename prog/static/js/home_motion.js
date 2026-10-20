@@ -1,9 +1,12 @@
 /* DevCodeArena — home_motion.js: revelar ao rolar e fallback das cenas 3D.
    Fica fora do home.js de propósito: se o three.js não carregar, a página continua funcionando. */
 const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+const motionOverride = new URLSearchParams(window.location.search).get("motion") === "on";
+const motionEnabled = !motionPreference.matches || motionOverride;
+if (motionOverride) document.documentElement.classList.add("motion-override");
 const revealItems = document.querySelectorAll(".home-reveal");
 
-if (!motionPreference.matches) {
+if (motionEnabled) {
   if ("IntersectionObserver" in window) {
     document.documentElement.classList.add("has-motion");
     const revealObserver = new IntersectionObserver((entries, currentObserver) => {
@@ -20,7 +23,7 @@ if (!motionPreference.matches) {
 }
 
 const scenes = document.querySelectorAll(".scene");
-if (motionPreference.matches || navigator.connection?.saveData || !("IntersectionObserver" in window)) {
+if ((!motionEnabled && !motionOverride) || navigator.connection?.saveData || !("IntersectionObserver" in window)) {
   scenes.forEach((scene) => scene.classList.add("is-fallback"));
 } else if (scenes.length) {
   // O módulo 3D carrega já (a cena do hero começa sozinha); cada cena decide quando iniciar.
