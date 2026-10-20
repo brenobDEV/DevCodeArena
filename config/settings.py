@@ -43,7 +43,7 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 if DEBUG and not ALLOWED_HOSTS:
-    ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+    ALLOWED_HOSTS = ['progponto.pythonanywhere.com', '127.0.0.1']
 elif not DEBUG and not ALLOWED_HOSTS:
     raise ImproperlyConfigured("Configure DJANGO_ALLOWED_HOSTS when DJANGO_DEBUG is disabled.")
 
