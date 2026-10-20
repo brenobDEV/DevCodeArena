@@ -29,7 +29,7 @@ def _env_bool(name, default=False):
 
 # Read secrets and deploy-specific settings from the environment.
 # The development fallback is intentionally unsuitable for production.
-DEBUG = _env_bool("DJANGO_DEBUG", False)
+DEBUG = _env_bool("DJANGO_DEBUG", True)
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "").strip()
 if not SECRET_KEY:
     if DEBUG:
@@ -43,7 +43,7 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 if DEBUG and not ALLOWED_HOSTS:
-    ALLOWED_HOSTS = ['progponto.pythonanywhere.com', '127.0.0.1']
+    ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 elif not DEBUG and not ALLOWED_HOSTS:
     raise ImproperlyConfigured("Configure DJANGO_ALLOWED_HOSTS when DJANGO_DEBUG is disabled.")
 
@@ -138,7 +138,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 
-STATIC_URL = "/static/"
+STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "media/"

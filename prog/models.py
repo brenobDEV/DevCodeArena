@@ -68,6 +68,20 @@ class Challenge(models.Model):
             and self.deadline >= now
         )
 
+    @property
+    def listing_state(self):
+        """Por que o desafio aparece (ou não) na lista dos desenvolvedores."""
+        now = timezone.now()
+        if self.status == self.STATUS_DRAFT:
+            return "draft"
+        if self.status == self.STATUS_CLOSED or not self.is_active:
+            return "closed"
+        if self.deadline < now:
+            return "expired"
+        if self.start_at and self.start_at > now:
+            return "scheduled"
+        return "live"
+
 
 class Participation(models.Model):
     STATUS_REGISTERED = "registered"

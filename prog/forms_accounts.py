@@ -10,14 +10,6 @@ from .models_accounts import Profile
 User = get_user_model()
 LABEL = {Profile.DEVELOPER: "desenvolvedor", Profile.COMPANY: "empresa"}
 
-# Campos de endereço: só aparecem no cadastro de empresa.
-ADDRESS_FIELDS = ("cep", "logradouro", "numero", "complemento", "bairro", "cidade", "uf")
-UFS = {
-    "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA",
-    "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO",
-}
-
-
 def only_digits(value):
     return re.sub(r"\D", "", value or "")
 
@@ -70,27 +62,6 @@ class SignupForm(StyledForm):
                            error_messages={"required": "Por favor, informe o CNPJ da empresa."},
                            widget=forms.TextInput(attrs={"autocomplete": "off", "placeholder": "00.000.000/0000-00", "data-mask": "cnpj"}))
 
-    # --- Endereço da empresa (CEP busca o resto pelo ViaCEP no navegador) ---
-    cep = forms.CharField(label="CEP", max_length=9,
-                          error_messages={"required": "Por favor, informe o CEP da empresa."},
-                          widget=forms.TextInput(attrs={"inputmode": "numeric", "autocomplete": "postal-code", "placeholder": "00000-000", "data-mask": "cep"}))
-    logradouro = forms.CharField(label="Rua / Avenida", max_length=150,
-                                 error_messages={"required": "Informe a rua ou avenida."},
-                                 widget=forms.TextInput(attrs={"autocomplete": "address-line1"}))
-    numero = forms.CharField(label="Número", max_length=10,
-                             error_messages={"required": "Informe o número."},
-                             widget=forms.TextInput(attrs={"autocomplete": "off", "placeholder": "Ex.: 123"}))
-    complemento = forms.CharField(label="Complemento (opcional)", max_length=80, required=False,
-                                  widget=forms.TextInput(attrs={"autocomplete": "address-line2"}))
-    bairro = forms.CharField(label="Bairro", max_length=80,
-                             error_messages={"required": "Informe o bairro."})
-    cidade = forms.CharField(label="Cidade", max_length=80,
-                             error_messages={"required": "Informe a cidade."},
-                             widget=forms.TextInput(attrs={"autocomplete": "address-level2"}))
-    uf = forms.CharField(label="UF", max_length=2,
-                         error_messages={"required": "Informe a UF."},
-                         widget=forms.TextInput(attrs={"autocomplete": "address-level1", "placeholder": "SP", "maxlength": "2"}))
-
     email = forms.EmailField(label="E-mail", widget=forms.EmailInput(attrs={"autocomplete": "email", "placeholder": "voce@email.com"}))
     senha = forms.CharField(label="Senha", widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}))
     senha2 = forms.CharField(label="Confirmar senha", widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}))
@@ -100,7 +71,7 @@ class SignupForm(StyledForm):
         self.kind = kind
         # Cada tipo de conta mostra (e valida) só o que é dela.
         if kind == Profile.COMPANY:
-            del self.fields["cpf"]   # empresa não tem CPF
+            del self.fields["cpf"]      # empresa não tem CPF
             # Empresa informa o nome da empresa, não o nome de uma pessoa.
             self.fields["nome"].label = "Nome da empresa"
             self.fields["nome"].widget.attrs.update({
@@ -109,8 +80,6 @@ class SignupForm(StyledForm):
             })
         else:
             del self.fields["cnpj"]  # dev não tem CNPJ
-            for name in ADDRESS_FIELDS:  # dev não informa endereço
-                del self.fields[name]
 
     def clean_nome(self):
         return " ".join(self.cleaned_data["nome"].split())
@@ -131,18 +100,6 @@ class SignupForm(StyledForm):
             raise forms.ValidationError("Este CNPJ já está cadastrado.")
         return cnpj
 
-    def clean_cep(self):
-        cep = only_digits(self.cleaned_data["cep"])
-        if len(cep) != 8:
-            raise forms.ValidationError("Informe um CEP válido (8 números).")
-        return cep
-
-    def clean_uf(self):
-        uf = self.cleaned_data["uf"].strip().upper()
-        if uf not in UFS:
-            raise forms.ValidationError("Informe uma UF válida (ex.: SP).")
-        return uf
-
     def clean_email(self):
         email = self.cleaned_data["email"].strip().lower()
         if User.objects.filter(username__iexact=email).exists() or User.objects.filter(email__iexact=email).exists():
@@ -152,7 +109,7 @@ class SignupForm(StyledForm):
     def clean(self):
         data = super().clean()
         s1, s2 = data.get("senha"), data.get("senha2")
-        if s1 and s2 and s1 != s2:
+        if "senha2" in self.fields and s1 and s2 and s1 != s2:
             self.add_error("senha2", "As senhas não coincidem.")
         elif s1:
             try:
@@ -166,8 +123,7 @@ class SignupForm(StyledForm):
         kind = kind or self.kind
         d = self.cleaned_data
         user = User.objects.create_user(username=d["email"], email=d["email"], password=d["senha"], first_name=d["nome"][:150])
-        address = {name: d.get(name, "").strip() for name in ADDRESS_FIELDS}
-        Profile.objects.create(user=user, tipo=kind, cpf=d.get("cpf"), cnpj=d.get("cnpj"), **address)
+        Profile.objects.create(user=user, tipo=kind, cpf=d.get("cpf"), cnpj=d.get("cnpj"))
         return user
 
 

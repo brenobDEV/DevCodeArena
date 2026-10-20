@@ -7,3 +7,11 @@
 <div class="form-actions"><button class="btn-dca btn-dca--outline" name="action" value="draft" type="submit">Salvar rascunho</button><button class="btn-dca btn-dca--primary" name="action" value="publish" type="submit"><i class="bi bi-send" aria-hidden="true"></i> Publicar desafio</button></div>
 </form></div></section>
 {% endblock %}
+{% block extra_js %}
+<script>
+/* Enter num campo de uma linha enviava o formulário pelo 1º botão ("Salvar rascunho") sem a pessoa perceber. Agora só os botões enviam. */
+document.querySelectorAll(".platform-form input").forEach(function (input) {
+  input.addEventListener("keydown", function (e) { if (e.key === "Enter") e.preventDefault(); });
+});
+</script>
+{% endblock %}

@@ -146,7 +146,7 @@ class ChallengeForm(StyledModelForm):
             "evaluation_criteria": "Critérios de avaliação",
         }
         help_texts = {
-            "start_at": "Deixe vazio para iniciar assim que for publicado.",
+            "start_at": "Deixe vazio para aparecer assim que for publicado. Com uma data futura, o desafio só aparece para os devs a partir dela.",
             "languages": "Separe linguagens por vírgula, por exemplo: Python, JavaScript.",
             "technologies": "Separe tecnologias por vírgula, por exemplo: Django, PostgreSQL.",
             "evaluation_criteria": "Descreva como a empresa avaliará a entrega. A avaliação é manual nesta versão.",

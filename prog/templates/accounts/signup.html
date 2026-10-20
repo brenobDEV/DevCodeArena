@@ -56,20 +56,16 @@
         {% endif %}
         {% include "accounts/_field.html" with field=form.nome %}
         {% if kind == "company" %}
+          {% include "accounts/_field.html" with field=form.email %}
           {% include "accounts/_field.html" with field=form.cnpj %}
-          {% include "accounts/_field.html" with field=form.cep %}
-          {% include "accounts/_field.html" with field=form.logradouro %}
-          {% include "accounts/_field.html" with field=form.numero %}
-          {% include "accounts/_field.html" with field=form.complemento %}
-          {% include "accounts/_field.html" with field=form.bairro %}
-          {% include "accounts/_field.html" with field=form.cidade %}
-          {% include "accounts/_field.html" with field=form.uf %}
+          {% include "accounts/_field.html" with field=form.senha %}
+          {% include "accounts/_field.html" with field=form.senha2 %}
         {% else %}
           {% include "accounts/_field.html" with field=form.cpf %}
+          {% include "accounts/_field.html" with field=form.email %}
+          {% include "accounts/_field.html" with field=form.senha %}
+          {% include "accounts/_field.html" with field=form.senha2 %}
         {% endif %}
-        {% include "accounts/_field.html" with field=form.email %}
-        {% include "accounts/_field.html" with field=form.senha %}
-        {% include "accounts/_field.html" with field=form.senha2 %}
         <button type="submit" class="btn-dca btn-dca--primary auth__submit">Criar conta</button>
       </form>
 
