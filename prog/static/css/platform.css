@@ -453,3 +453,6 @@
   .metric-card { transition: none; }
   .metric-card:hover { transform: none; }
 }
+
+.management-card .management-card__hint { display:flex; align-items:center; gap:.45rem; margin:.7rem 0 0; font-size:.85rem; }
+.management-card__hint--warn { color:#f59e0b!important; }

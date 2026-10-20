@@ -8,13 +8,13 @@ from .models_accounts import Profile
 COPY = {
     Profile.DEVELOPER: {
         "slug": "dev", "glyph": "</>", "badge": "Para desenvolvedores",
-        "login_title": "Entre e deixe seu código falar.", "login_text": "Acesse seus desafios, envie soluções e acompanhe as oportunidades.",
-        "signup_title": "Crie sua conta de desenvolvedor.", "signup_text": "Resolva desafios inspirados em problemas reais e apresente suas habilidades às empresas.",
+        "login_title": "Entre e deixe seu código falar.", "login_text": "Acesse seus desafios e envie suas soluções.",
+        "signup_title": "Crie sua conta de desenvolvedor.", "signup_text": "Resolva desafios e mostre seu talento às empresas.",
     },
     Profile.COMPANY: {
         "slug": "empresa", "glyph": "{ }", "badge": "Para empresas",
-        "login_title": "Encontre talentos pelo que eles entregam.", "login_text": "Gerencie desafios, avalie soluções e converse com quem se destacou.",
-        "signup_title": "Crie sua conta de empresa.", "signup_text": "Publique desafios baseados em problemas reais e descubra desenvolvedores pelas soluções.",
+        "login_title": "Encontre talentos pelo que eles entregam.", "login_text": "Gerencie seus desafios e converse com quem se destacou.",
+        "signup_title": "Crie sua conta de empresa.", "signup_text": "Publique desafios e descubra talentos.",
     },
 }
 

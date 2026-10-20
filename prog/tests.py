@@ -424,47 +424,43 @@ class ProfileTests(PlatformTestCase):
 
 
 class SignupIdentifierTests(TestCase):
-    ADDRESS = {
-        "cep": "01310-100", "logradouro": "Avenida Paulista", "numero": "1000",
-        "complemento": "Sala 2", "bairro": "Bela Vista", "cidade": "São Paulo", "uf": "sp",
-    }
-
     def signup_data(self, identifier_name, identifier_value):
         data = {
             "nome": "Conta de Teste",
             identifier_name: identifier_value,
             "email": f"{identifier_name}@example.test",
             "senha": "Complex-Test-Password-984!",
-            "senha2": "Complex-Test-Password-984!",
+            "senha2": "Complex-Test-Password-984!",  # dev e empresa confirmam a senha
         }
-        if identifier_name == "cnpj":  # empresa também informa o endereço
-            data.update(self.ADDRESS)
         return data
 
-    def test_company_signup_saves_normalized_address(self):
-        self.client.post(reverse("signup_company"), self.signup_data("cnpj", "04.252.011/0001-10"))
-        profile = Profile.objects.get(user__email="cnpj@example.test")
-        self.assertEqual((profile.cep, profile.uf, profile.cidade), ("01310100", "SP", "São Paulo"))
-        self.assertEqual(profile.logradouro, "Avenida Paulista")
+    def test_company_signup_has_name_cnpj_email_password_and_password_confirmation(self):
+        response = self.client.get(reverse("signup_company"))
+        form = response.context["form"]
+        self.assertEqual(list(form.fields), ["nome", "cnpj", "email", "senha", "senha2"])
+        self.assertEqual(form.fields["nome"].label, "Nome da empresa")
+        self.assertContains(response, 'name="senha2"')
+        for name in ("cep", "logradouro", "numero", "bairro", "cidade", "uf", "cpf"):
+            self.assertNotContains(response, f'name="{name}"')
 
-    def test_company_signup_requires_address(self):
+    def test_company_signup_rejects_mismatched_password_confirmation(self):
         data = self.signup_data("cnpj", "04.252.011/0001-10")
-        for field in ("cep", "logradouro", "numero", "bairro", "cidade", "uf"):
-            data.pop(field)
+        data["senha2"] = "Outra-Senha-Diferente-123!"
         response = self.client.post(reverse("signup_company"), data)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Por favor, informe o CEP da empresa.")
+        self.assertContains(response, "As senhas não coincidem.")
         self.assertFalse(Profile.objects.filter(user__email="cnpj@example.test").exists())
 
-    def test_company_signup_rejects_invalid_cep_and_uf(self):
-        data = self.signup_data("cnpj", "04.252.011/0001-10") | {"cep": "123", "uf": "XX"}
-        response = self.client.post(reverse("signup_company"), data)
-        self.assertContains(response, "Informe um CEP válido (8 números).")
-        self.assertContains(response, "Informe uma UF válida (ex.: SP).")
+    def test_company_signup_saves_account_without_address(self):
+        self.client.post(reverse("signup_company"), self.signup_data("cnpj", "04.252.011/0001-10"))
+        profile = Profile.objects.get(user__email="cnpj@example.test")
+        self.assertEqual(profile.user.first_name, "Conta de Teste")
+        self.assertEqual((profile.cep, profile.logradouro, profile.uf), ("", "", ""))
 
     def test_developer_signup_does_not_ask_for_address(self):
         response = self.client.get(reverse("signup_dev"))
         self.assertNotContains(response, 'name="cep"')
+        self.assertContains(response, 'name="senha2"')
 
     def test_company_signup_requires_and_saves_cnpj_instead_of_cpf(self):
         response = self.client.post(
@@ -704,14 +700,16 @@ class NavigationTests(PlatformTestCase):
         self.assertContains(response, 'class="brand__mascot-face"')
         self.assertContains(response, 'id="cyber-shell"')
         self.assertContains(response, '<h1 class="hero__title" id="home-title"><span class="hero__title-highlight">DevCode</span>Arena</h1>')
-        self.assertContains(response, '<p class="hero__headline">Desafios reais. Talento em evidência.</p>')
-        self.assertContains(response, "Criar perfil DEV")
-        self.assertContains(response, "Criar perfil de empresa")
+        self.assertContains(response, '<p class="hero__headline">Hackathons que conectam talentos a oportunidades.</p>')
+        self.assertContains(response, "Sou DEV")
+        self.assertContains(response, "Sou empresa")
+        self.assertContains(response, reverse("signup_dev"))
+        self.assertContains(response, reverse("signup_company"))
         self.assertContains(response, "hero-visual")
         self.assertContains(response, "arena-podium")
         self.assertContains(response, "TALENTO EM DESTAQUE")
         self.assertContains(response, "Desafios reais")
-        self.assertContains(response, "Avaliação manual")
+        self.assertContains(response, "A empresa avalia")
         self.assertContains(response, "Entregas avaliadas")
         self.assertContains(response, "Seu trabalho fala mais alto.")
         self.assertContains(response, 'id="como-funciona"')
@@ -722,7 +720,7 @@ class NavigationTests(PlatformTestCase):
         self.assertContains(response, 'id="arena-scene"')
         self.assertContains(response, "three.module.js")
         self.assertContains(response, "home_motion.js")
-        self.assertContains(response, "home_motion.js?v=4")
+        self.assertContains(response, "home_motion.js?v=5")
         self.assertNotContains(response, "gsap.min.js")
 
     def test_login_page_offers_both_account_types(self):
@@ -732,13 +730,20 @@ class NavigationTests(PlatformTestCase):
         self.assertContains(response, reverse("login_company") + "?next=/desafios/")
         self.assertContains(response, reverse("signup"))
 
-    def test_homepage_next_step_never_sends_visitor_to_logged_area(self):
+    def test_homepage_does_not_repeat_login_and_signup_buttons_for_visitors(self):
         response = self.client.get(reverse("home"))
         html = response.content.decode()
-        block = html[html.index('class="next-step"'):html.index("</section>", html.index('class="next-step"'))]
-        self.assertIn(reverse("signup"), block)
-        self.assertIn(reverse("login"), block)
-        self.assertNotIn(reverse("challenge_periods"), block)
+        # o convite final ("próximo passo") só existe para quem já está logado
+        self.assertNotIn('class="next-step"', html)
+        # os cards de apresentação não carregam botões de cadastro/login
+        main = html[html.index('<main'):html.index("</main>")]
+        self.assertNotIn("Criar conta DEV", main)
+        self.assertNotIn("Criar conta de empresa", main)
+        self.assertNotIn("Escolher meu perfil", main)
+        # o hero mantém os dois caminhos de cadastro e a pessoa ainda alcança o login pelo menu/rodapé
+        self.assertEqual(main.count(reverse("signup_dev")), 1)
+        self.assertEqual(main.count(reverse("signup_company")), 1)
+        self.assertIn(reverse("login_dev"), html)
         self.assertNotIn(reverse("leaderboard"), html[html.index("site-footer"):])
 
     def test_homepage_next_step_for_logged_developer_goes_to_challenges(self):

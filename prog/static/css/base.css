@@ -1,70 +1,76 @@
 /* DevCodeArena — base.css: tokens, temas, cabeçalho, menu, botões, modal, rodapé */
+/* Paleta única (Figma): os dois temas usam as mesmas cores de marca — petróleo, cobalto, limão e o laranja do logo.
+   O que muda de um tema para o outro é só a superfície (fundo claro x escuro); matizes e destaques são os mesmos. */
 :root, [data-theme="light"] {
-  --text: #172033;
-  --border: #dce4f0;
-  --accent: #65a30d;
-  --accent-soft: #84cc16;
-  --accent-ink: #4d7c0f;
-  --logo-dot: #ff6b35;
-  --focus: #2563eb;
-  --interact: #4f46e5;
-  --trust: #0e7490;
-  --bg: #f4f7fc;
-  --muted: #59677d;
-  --hero-from: #eaf0fa;
-  --hero-to: #f9fbff;
-  --header-bg: #0d1525;
+  --text: #0f172a;
+  --border: #e2e8f0;
+  --accent: #65a30d;       /* verde-limão escuro (preenchimentos, realces) */
+  --accent-soft: #84cc16;  /* versão mais viva, para texto/ícones sobre fundo escuro ou petróleo */
+  --accent-ink: #3f6212;   /* o mesmo destaque, escuro, para TEXTO sobre fundo claro */
+  --logo-dot: #ff8a5c;     /* ponto do logo (3:1 sobre o cabeçalho petróleo) */
+  --field-border: #78879d; /* borda de campos/controles: 3,5:1 sobre branco (WCAG 1.4.11) */
+  --edge: #cbd5e1;         /* contorno de cards, chips e tabelas sobre fundo claro */
+  --focus: #1669b6;
+  --interact: #1669b6;
+  --trust: #0e5e81;
+  --bg: #f8fafc;
+  --muted: #475569;
+  --hero-from: #e2e8f0;
+  --hero-to: #ffffff;
+  --header-bg: #0e5e81;
   --header-fg: #f8fafc;
-  --menu-bg: #111b2d;
-  --card-bg: #ffffff;
-  --card-fg: #172033;
-  --card-muted: #59677d;
-  --card-border: #dce4f0;
-  --card-shadow: 0 18px 48px rgba(23, 32, 51, .08);
-  --strip-bg: #edf2fa;
-  --rule: rgba(15, 23, 42, .12);
-  --footer-bg: #0d1525;
+  --menu-bg: #0e5e81;
+  --card-bg: #0f172a;
+  --card-fg: #f8fafc;
+  --card-muted: #94a3b8;
+  --card-border: #0f172a;
+  --card-shadow: 0 10px 24px rgba(15, 23, 42, .28);
+  --strip-bg: #e2e8f0;
+  --rule: rgba(15, 23, 42, .4);
+  --footer-bg: #0e5e81;
   --footer-fg: #f8fafc;
-  --dots: rgba(15, 23, 42, .08);
-  --link: #4338ca;
-  --btn2-bg: #0d1525; --btn2-fg: #f8fafc; --btn2-border: #0d1525;
+  --dots: rgba(15, 23, 42, .16);
+  --link: #1669b6;
+  --btn2-bg: #0f172a; --btn2-fg: #f8fafc; --btn2-border: #0f172a;
   --surface: #ffffff;
-  --surface-raised: #fbfcff;
+  --surface-raised: #f8fafc;
   --surface-glass: rgba(255, 255, 255, .84);
-  --shadow-soft: 0 24px 64px rgba(23, 32, 51, .12);
+  --shadow-soft: 0 24px 64px rgba(15, 23, 42, .12);
 }
 [data-theme="dark"] {
-  --text: #edf3ff;
-  --border: #26354b;
-  --accent: #84cc16;
-  --accent-soft: #a3e635;
-  --accent-ink: #a3e635;
+  --text: #f8fafc;
+  --border: #1e293b;
+  --accent: #65a30d;
+  --accent-soft: #84cc16;
+  --accent-ink: #84cc16;
   --logo-dot: #ff6b35;
-  --focus: #67e8f9;
-  --interact: #6366f1;
-  --trust: #22d3ee;
-  --bg: #080d18;
-  --muted: #a5b2c7;
-  --hero-from: #101b2d;
-  --hero-to: #080d18;
-  --header-bg: #090f1d;
-  --header-fg: #edf3ff;
-  --menu-bg: #111a2b;
-  --card-bg: #111a2b;
-  --card-fg: #edf3ff;
-  --card-muted: #a5b2c7;
-  --card-border: #26354b;
-  --card-shadow: 0 18px 48px rgba(0, 0, 0, .24);
-  --strip-bg: #0e1727;
-  --rule: #26354b;
-  --footer-bg: #080d18;
+  --field-border: #64748b;   /* 3,6:1 sobre o card escuro */
+  --edge: #1e293b;
+  --focus: #00e5ff;
+  --interact: #2563eb;
+  --trust: #00e5ff;
+  --bg: #0a0d14;
+  --muted: #94a3b8;
+  --hero-from: #1e293b;
+  --hero-to: #0a0d14;
+  --header-bg: #0a0d14;
+  --header-fg: #f8fafc;
+  --menu-bg: #131926;
+  --card-bg: #131926;
+  --card-fg: #f8fafc;
+  --card-muted: #94a3b8;
+  --card-border: #1e293b;
+  --card-shadow: none;
+  --strip-bg: #0e131d;
+  --rule: #1e293b;
+  --footer-bg: #0a0d14;
   --footer-fg: #f8fafc;
-  --dots: rgba(248, 250, 252, .055);
-  --link: #67e8f9;
+  --dots: rgba(248, 250, 252, .08);
+  --link: #00e5ff;
   --btn2-bg: transparent; --btn2-fg: #f8fafc; --btn2-border: #f8fafc;
-  --surface: #111a2b;
-  --surface-raised: #172338;
-  --surface-glass: rgba(8, 13, 24, .88);
+  --surface: #131926;
+  --surface-raised: #1a2234;
+  --surface-glass: rgba(10, 13, 20, .88);
   --shadow-soft: 0 24px 64px rgba(0, 0, 0, .34);
 }
 

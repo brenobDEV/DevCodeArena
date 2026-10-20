@@ -266,7 +266,22 @@ def _company_challenge_form(request, profile, challenge):
                 obj.status = Challenge.STATUS_DRAFT
                 obj.is_active = False
             obj.save()
-            messages.success(request, "Desafio publicado." if publishing else "Rascunho salvo com sucesso.")
+            if not publishing:
+                messages.success(
+                    request,
+                    "Rascunho salvo. Ele ainda NÃO aparece para os desenvolvedores: use \"Publicar\" para colocá-lo no ar.",
+                )
+            elif obj.start_at > timezone.now():
+                messages.success(
+                    request,
+                    "Desafio publicado, mas agendado: ele só aparece para os desenvolvedores a partir de "
+                    f"{timezone.localtime(obj.start_at):%d/%m/%Y %H:%M}.",
+                )
+            else:
+                messages.success(
+                    request,
+                    f"Desafio publicado! Ele já aparece em Desafios {'semanais' if obj.period == Challenge.PERIOD_WEEKLY else 'mensais'}.",
+                )
             return redirect("company_challenge_management")
     return render(request, "platform/company_challenge_form.html", {
         "form": form, "challenge": challenge, "is_edit": challenge is not None,

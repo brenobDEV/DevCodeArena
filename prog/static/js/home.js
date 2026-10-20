@@ -153,13 +153,13 @@ function buildCodeSymbol() {
 /* ---------- Material técnico da mão: corpo escuro + brilho nas bordas + linhas de varredura ---------- */
 const handUniforms = { uTime: { value: 0 } };
 const handLight = { value: 0 }, noLight = { value: 0 };   // 0 = escuro, 1 = claro (só a mão usa)
-/* Paleta por tema: corpo escuro + arestas luminosas azul -> ciano, a mesma linguagem do Coliseu */
+/* Paleta por tema. No escuro o corpo da mão é azul (não preto): um corpo quase preto sumia contra o fundo #0a0d14 e só restavam as linhas. */
 const PALETTE = {
   /* e1/e2: arestas do </>. h1/h2: curvas de nível da mão. rim: contorno de tinta (só no claro).
      Fundo claro pede o inverso do escuro: corpo SATURADO e escuro com linhas claras. Corpo claro some no branco
      (medido: mão 0x7f9fcb renderizava com contraste 1,7:1; cobalto 0x1d4fc9 dá ~8:1). Mão e </> mudam juntos com o tema. */
   light: { hand: 0x1d4fc9, sym: 0x14307a, glow: 0x60a5fa, e1: 0x38bdf8, e2: 0xf0f9ff, h1: 0x38bdf8, h2: 0xf0f9ff, rim: 0x0a1a4a, rough: 0.38, metal: 0.1, lineOp: 0.9, fx: 0x1669b6, scan: 0x84cc16, add: false },
-  dark: { hand: 0x0b1426, sym: 0x0b1426, glow: 0x3b82f6, e1: 0x2563eb, e2: 0xe2e8f0, h1: 0x2563eb, h2: 0xe2e8f0, rim: 0x3b82f6, rough: 0.5, metal: 0.35, lineOp: 0.7, fx: 0x60a5fa, scan: 0xa3e635, add: true },
+  dark: { hand: 0x2b6fd6, sym: 0x1b3f9c, glow: 0x38bdf8, e1: 0x00e5ff, e2: 0xf0f9ff, h1: 0x7dd3fc, h2: 0xf0f9ff, rim: 0x3b82f6, rough: 0.42, metal: 0.15, lineOp: 0.85, fx: 0x60a5fa, scan: 0xa3e635, add: true },
 };
 const themeNow = () => (document.documentElement.dataset.theme === "dark" ? PALETTE.dark : PALETTE.light);
 
@@ -275,7 +275,7 @@ function fitHand(model, orient, root, wrist, rotDeg, scale) {
 function initHeroScene() {
   const el = document.getElementById("hero-scene");
   if (!el) return;
-  const stage = createStage(el, { fov: 38, pos: new THREE.Vector3(0.6, 4.6, 9.2), look: new THREE.Vector3(0, 0.4, 0.7) });   // mira um pouco mais baixa: sobra folga embaixo e os dedos não encostam na borda do canvas
+  const stage = createStage(el, { fov: 38, pos: new THREE.Vector3(0.65, 4.3, 9.7), look: new THREE.Vector3(0, 1.0, 0.7) });   // mira um pouco mais baixa: sobra folga embaixo e os dedos não encostam na borda do canvas
   if (!stage) return;
   const { scene } = stage;
 
@@ -289,9 +289,7 @@ function initHeroScene() {
   const rim = new THREE.DirectionalLight(0x00e5ff, 2.6); rim.position.set(-6, 3, -4); scene.add(rim);
   const fill = new THREE.PointLight(0x2563eb, 30, 14, 2); fill.position.set(0, -1, 4); scene.add(fill);
 
-  const symbol = buildCodeSymbol(); symbol.scale.setScalar(cfg.ss);   // o </> 3D não é mais adicionado à cena: quem paira sobre a mão é a arena (CSS), sincronizada pelo estado
-  const hoverCol = el.closest(".hero-column");
-  if (hoverCol && !reduceMotion && window.gsap) hoverCol.classList.add("is-synced");
+  const symbol = buildCodeSymbol(); symbol.scale.setScalar(cfg.ss); scene.add(symbol);   // o </> 3D gira sobre a mão
   const root = new THREE.Group(), wrist = new THREE.Group(), orient = new THREE.Group();
   root.add(wrist); wrist.add(orient); scene.add(root);
   const state = { lift: 0, lift2: 0, spin: 0, reveal: 1, rise: 1, fx: 0, scan: 1, life: 0, curl: [1, 1, 1, 1, 1] };   // lift: mão; lift2: símbolo (atrasado = o impulso); curl: 1 = dedo fechado, 0 = aberto; life: intensidade do movimento ocioso dos dedos
@@ -368,18 +366,18 @@ function initHeroScene() {
     tl && tl.kill();
     Object.assign(state, { scan: 0, reveal: 0, rise: 0, fx: 0, spin: 0, life: 0 }); state.curl.fill(1);
     tl = gsap.timeline()
-      .to(state, { scan: 1, duration: 2.3, ease: "power1.inOut" }, 0.2)         // 1) scanner constrói a mão, do pulso aos dedos
-      .to(state, { fx: 1, duration: 1.8, ease: "none" }, 2.2)                   // 2) pulso e partículas na palma
-      .to(state, { reveal: 1, duration: 1.6, ease: "power2.inOut" }, 2.4)       // 3) </> se forma
-      .to(state, { rise: 1, duration: 2.4, ease: "elastic.out(1, 0.5)" }, 2.4)
-      .to(state, { spin: 1, duration: 3, ease: "power2.out" }, 2.5)
-      .to(state, { life: 1, duration: 2.5, ease: "sine.inOut" }, 4.4);          // 4) os dedos passam a respirar
-    [0, 1, 2, 3, 4].forEach((i) => tl.to(state.curl, { [i]: 0, duration: 1.3, ease: "back.out(1.6)" }, 2.5 + i * 0.16));   // dedos abrem em cascata, do mindinho ao polegar
+      .to(state, { scan: 1, duration: 1.2, ease: "power1.inOut" }, 0.1)         // 1) scanner constrói a mão, do pulso aos dedos
+      .to(state, { fx: 1, duration: 1.0, ease: "none" }, 0.9)                   // 2) pulso e partículas na palma
+      .to(state, { reveal: 1, duration: 0.7, ease: "power2.inOut" }, 0.6)       // 3) </> se forma
+      .to(state, { rise: 1, duration: 1.1, ease: "elastic.out(1, 0.5)" }, 0.6)
+      .to(state, { spin: 1, duration: 2, ease: "power2.out" }, 0.7)
+      .to(state, { life: 1, duration: 1.5, ease: "sine.inOut" }, 1.8);          // 4) os dedos passam a respirar
+    [0, 1, 2, 3, 4].forEach((i) => tl.to(state.curl, { [i]: 0, duration: 0.8, ease: "back.out(1.6)" }, 0.8 + i * 0.08));   // dedos abrem em cascata, do mindinho ao polegar
   };
   if (!reduceMotion && window.gsap) {
     Object.assign(state, { scan: 0, reveal: 0, rise: 0 });   // começa com a mão fechada e sem símbolo
-    gsap.to(state, { lift: 1, duration: 3.4, ease: "sine.inOut", yoyo: true, repeat: -1, delay: 5 });                 // a mão sobe e desce
-    gsap.to(state, { lift2: 1, duration: 3.4, ease: "sine.inOut", yoyo: true, repeat: -1, delay: 5.28 });             // o símbolo acompanha, com atraso
+    gsap.to(state, { lift: 1, duration: 3.4, ease: "sine.inOut", yoyo: true, repeat: -1, delay: 2.4 });               // a mão sobe e desce
+    gsap.to(state, { lift2: 1, duration: 3.4, ease: "sine.inOut", yoyo: true, repeat: -1, delay: 2.68 });             // o símbolo acompanha, com atraso
   }
 
   /* mão: 0 = escuro (metal com brilho), 1 = claro (porcelana com contorno de tinta e grão). Anima entre os dois. */
@@ -449,11 +447,6 @@ function initHeroScene() {
     symAngle += dt * 0.6 * state.spin;   // integra o ângulo: o </> acelera sem saltos e gira sem parar
     symbol.rotation.set(0.16 + Math.sin(t * 0.5) * 0.05, symAngle, -0.05);
     symbol.children.forEach((m, i) => { m.position.x = m.userData.x * (0.35 + 0.65 * r); m.rotation.y = (1 - Math.min(r, 1)) * (i - 1) * 1.4; });   // peças se encaixam
-    if (hoverCol) {   // a arena paira sobre a mão e surge exatamente como o </> surgia
-      const st = hoverCol.style, q = (v) => (Math.round(v * 1000) / 1000).toString();
-      st.setProperty("--hv-reveal", q(rv)); st.setProperty("--hv-rise", q(r));
-      st.setProperty("--hv-bob", q(state.lift2 + Math.sin(t * 0.8) * 0.07));
-    }
     const f = state.fx;
     rings.forEach((m, i) => { const q = THREE.MathUtils.clamp(f * 1.4 - i * 0.28, 0, 1); m.scale.setScalar(0.3 + q * 2.1); m.material.opacity = q > 0 ? (1 - q) * 0.9 : 0; });
     sparks.material.opacity = Math.sin(Math.PI * Math.min(f, 1)) * 0.9;
@@ -576,22 +569,31 @@ const scenes = document.querySelectorAll(".scene");
 if (navigator.connection?.saveData || !("IntersectionObserver" in window)) {
   scenes.forEach((scene) => scene.classList.add("is-fallback"));
 } else {
-  const sceneObserver = new IntersectionObserver((entries, observer) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting || entry.intersectionRatio < 0.65) return;
-      observer.unobserve(entry.target);
-      const initialize = entry.target.id === "hero-scene" ? initHeroScene : initArenaScene;
-      loadSceneModules()
-        .then(() => entry.target.id === "hero-scene"
-          ? loadGsap().catch((error) => {
-            console.warn("[DevCodeArena] GSAP indisponível; a animação 3D seguirá sem a sequência GSAP.", error);
-          }).then(initialize)
-          : initialize())
-        .catch((error) => {
-          entry.target.classList.add("is-fallback");
-          console.error("[DevCodeArena] Não foi possível carregar a cena 3D.", error);
-        });
-    });
-  }, { rootMargin: "0px 0px -35% 0px", threshold: 0.65 });
-  scenes.forEach((scene) => sceneObserver.observe(scene));
+  const startScene = (el) => {
+    const isHero = el.id === "hero-scene";
+    const gsapReady = isHero
+      ? loadGsap().catch((error) => console.warn("[DevCodeArena] GSAP indisponível; a animação 3D seguirá sem a sequência GSAP.", error))
+      : Promise.resolve();
+    // three.js e GSAP baixam em paralelo (antes eram em fila)
+    Promise.all([loadSceneModules(), gsapReady])
+      .then(() => (isHero ? initHeroScene() : initArenaScene()))
+      .catch((error) => {
+        el.classList.add("is-fallback");
+        console.error("[DevCodeArena] Não foi possível carregar a cena 3D.", error);
+      });
+  };
+
+  // Hero: é a primeira coisa que a pessoa vê, então começa já, sem esperar rolagem.
+  const heroScene = document.getElementById("hero-scene");
+  if (heroScene) startScene(heroScene);
+
+  // Coliseu: começa a carregar quando está a ~60% de uma tela de distância, pronto antes de chegar.
+  const arenaScene = document.getElementById("arena-scene");
+  if (arenaScene) {
+    new IntersectionObserver((entries, observer) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      observer.disconnect();
+      startScene(arenaScene);
+    }, { rootMargin: "0px 0px 60% 0px", threshold: 0 }).observe(arenaScene);
+  }
 }
